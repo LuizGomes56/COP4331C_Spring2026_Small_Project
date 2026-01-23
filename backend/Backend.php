@@ -6,43 +6,11 @@ function get_request_info() {
 
 $conn = new mysqli("localhost", "root", "root", "cop4331c_small_project");
 
-$login = function () use ($conn) {
-    function request_error($err) {
-        $retValue = '{
-            "id": 0,
-            "firstName": "",
-            "lastName": "",
-            "error": "' . $err . '"
-        }';
-        send_json($retValue);
-    }
+// @import("Users.php");
+// @import("Contacts.php");
 
-    function send_json($obj) {
-        header('Content-type: application/json');
-        echo $obj;
-    }
-
-    if ($conn->connect_error) {
-        request_error($conn->connect_error, 500);
-    }
-
-    $data = get_request_info();
-    $username = $data["username"] ?? "";
-    $password = $data["password"] ?? "";
-
-    if ($username === "" || $password === "") {
-        request_error("Missing username or password", 400);
-    }
-
-    $id = 0xFF;
-    $firstName = "todo!";
-    $lastName = "todo!";
-    $error = null;
-
-    send_json([
-        "id" => $id,
-        "firstName" => $firstName,
-        "lastName" => $lastName,
-        "error" => $error
-    ]);
-};
+// $login($conn);
+// $register($conn);
+// $add_contact($conn);
+// $remove_contact($conn);
+// $update_contact($conn);
