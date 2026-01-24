@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const reset_register = () => {
-    ["reg_first_name", "reg_last_name", "reg_password"]
+    ["reg_first_name", "reg_last_name", "reg_email", "reg_password"]
         .forEach(x => document.getElementById(x).value = "");
 
     first_name = "";

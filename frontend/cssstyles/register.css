@@ -71,3 +71,35 @@ button {
 .grid-cols-2 {
     grid-template-columns: repeat(2, 1fr);
 }
+
+.hidden {
+  visibility: hidden;
+}
+
+.reg-text {
+  padding-left: 6.5rem;
+  padding-top: -2rem;
+}
+
+.centering {
+  width: 15%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.credentials-page-title {
+  text-align: center; 
+
+}
+
+.box-title {
+  text-align: center;
+}
+
+.reg-text {
+  cursor: pointer;
+}
+
+.reg-text:hover {
+  color: rgb(100, 100, 255);
+}
