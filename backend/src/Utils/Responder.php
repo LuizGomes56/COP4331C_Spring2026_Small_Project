@@ -1,5 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
+namespace App\Utils;
+
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
