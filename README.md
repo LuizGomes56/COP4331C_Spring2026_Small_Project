@@ -295,6 +295,14 @@ type Routes = {
         input: {
             user_id: number,
             search: string
+        },
+        // Returns the info about that contact
+        output: {
+            contact_id: number,
+            name: string,
+            email?: string,
+            phone?: string,
+            notes?: string 
         }
     }
 }
