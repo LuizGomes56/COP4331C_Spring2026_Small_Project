@@ -13,6 +13,9 @@ let first_name = "";
  */
 let last_name = "";
 
+
+let register_api_point = "http://localhost:8080/register";
+
 /**
  * @type {{
  *     login: {
@@ -41,8 +44,7 @@ let last_name = "";
 var _schema = {};
 
 document.addEventListener("DOMContentLoaded", () => {
-    [
-        ["reg_submit", login],
+    [       
         ["reg_reset", reset_register]
     ].forEach(([id, fn]) => {
         document.getElementById(id).addEventListener("click", fn)
@@ -66,33 +68,7 @@ function get_value(
     return ids.map(x => document.getElementById(x).value);
 }
 
-const login = async () => {
-    let [email, password] = get_value([
-        "login_email",
-        "login_password"
-    ]);
 
-    const body = {
-        email,
-        password
-    };
-
-    try {
-        const request = await fetch("http://localhost:8080/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(body)
-        });
-    } catch (e) {
-        if (e instanceof Error) {
-            console.error(`Request error: ${e.message}`);
-        } else {
-            console.error(`Unknown class error: ${e}`);
-        }
-    }
-}
 
 const register = async () => {
     const [first_name, last_name, email, password] = get_value([
@@ -112,7 +88,7 @@ const register = async () => {
     console.log(body);
 
     try {
-        const request = await fetch("http://localhost:8080/register", {
+        const request = await fetch(register_api_point, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
