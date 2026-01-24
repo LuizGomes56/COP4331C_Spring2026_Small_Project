@@ -1,5 +1,15 @@
 ## Small Project - Contact Manager
 
+### Running the project
+
+- Install PHP
+- Install Composer
+
+> cd backend
+> composer i
+> composer dump-autoload
+> php -S 127.0.0.1:8000 router.php
+
 The following topics describe the order of steps I think we should do. We may discuss changes to it whenever we have time to meet. I used TypeScript type system to describe the database's schema and routes' inputs and outputs, which is good for you to start getting familiar with it since in the Large Project we will be using it as our backend (Only the Small Project has to be written with PHP!)
 
 Other examples are written in JavaScript or Rust, and people working on the API role will have to figure out how to translate them to PHP, and how to use the choosen framework (Example: Laravel). I can implement the whole application in Rust/JavaScript and we could use AI to translate it to PHP.

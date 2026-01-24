@@ -8,11 +8,10 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $app = AppFactory::create();
 
-// middleware
 $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
+$app->addErrorMiddleware(true, true, true);
 
-// routes
 (require __DIR__ . '/../src/routes.php')($app);
 
 $app->run();
