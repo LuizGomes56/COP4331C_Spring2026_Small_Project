@@ -85,6 +85,8 @@ type Database_Schema = {
         updated_at?: Date
     }
 }
+index on contact name and user_id for fast retrieval
+also consider fulltext index for substring matching for search functionality
 ```
 
 2. Deploy the database remotely after its creation has been finished
@@ -288,6 +290,13 @@ type Routes = {
             notes?: string
         }
     }
+    // SELECT * FROM contacts WHERE user_id = {user_id} AND LIKE %{search}%;
+    "contacts/search": {
+        input: {
+            user_id: number,
+            search: string
+        }
+    }
 }
 ```
 
@@ -305,6 +314,7 @@ To access our API, the most common way to do it is using the browser's native `f
 async function register() {
     // Get from the document the email, password and name
     // from the tag <input id="{x}">
+
     let [email, password, name] = [
         "#register_email",
         "#register_password",
