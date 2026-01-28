@@ -18,6 +18,9 @@ let field_missing_text = null;
 let invalid_input_text = null;
 
 let register_api_point = "http://localhost:8080/register";
+//TODO: Unimplemented webpage
+//Will discuss further about customer dashboard
+let customer_dashboard_url = "";
 /**
  * @type {{
  *     login: {
@@ -128,7 +131,7 @@ const register = async () => {
           if (json.error) {
               throw new Error(json.error);
           }
-
+          window.location.replace(customer_dashboard_url);
           console.log("ID: ${json.id}");
 
           
