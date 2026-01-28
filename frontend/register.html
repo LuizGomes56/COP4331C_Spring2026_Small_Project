@@ -13,6 +13,10 @@
     <h1 class="credentials-page-title">Small Project - Contacts</h1>
     <div id="register-box" class="centering flex flex-col gap-4 p-4 w-64">
         <h3 class="box-title">Create an Account</h3>
+        <div id="register-invalid-box" hidden>
+          <p id="invalid-input" hidden>Invalid email address</p>
+          <p id="field-missing" hidden>One or more fields missing or too short</p>
+        </div>
         <div class="flex flex-col gap-2">
             <input type="text" id="reg_first_name" placeholder="First name" />
             <input type="text" id="reg_last_name" placeholder="Last name" />

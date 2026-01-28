@@ -64,6 +64,14 @@ button {
     border-radius: 0.25rem;
 }
 
+button:hover {
+  background-color: rgb(200, 200, 200);
+}
+
+button:active {
+  background-color: rgb(96, 96, 150);
+}
+
 .grid {
     display: grid;
 }
