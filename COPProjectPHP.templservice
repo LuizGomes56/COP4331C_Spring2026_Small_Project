@@ -1,0 +1,11 @@
+[Unit]
+Description=Dev Server for the COP4331 PHP API
+
+[Service]
+ExecStart=$Binary
+User=$User 
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
