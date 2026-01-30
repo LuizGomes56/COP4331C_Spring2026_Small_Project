@@ -8,7 +8,6 @@ USE contact_manager;
 -- Users
 CREATE TABLE IF NOT EXISTS users (
   user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
-  -- Considering First / Last name approach
   full_name VARCHAR(128) NOT NULL,
   email      VARCHAR(128) NOT NULL UNIQUE,
   password_hash VARCHAR(60) NOT NULL,   -- Keeping 'Bcrypt', usually inside 60
