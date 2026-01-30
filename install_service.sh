@@ -16,7 +16,7 @@ if [ -e "$filename" ]; then
   content=${content//\$User/$linux_user}
   #systemd service dir is root or admin only thus it is needed
   sudo echo "$content" > "$service_directory$file_name.service"
-  sudo systemctl deamon-reload
+  sudo systemctl daemon-reload
   sudo systemctl start "$file_name.service"
   
 else 
