@@ -9,8 +9,7 @@ USE contact_manager;
 CREATE TABLE IF NOT EXISTS users (
   user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
   -- Considering First / Last name approach
-  first_name VARCHAR(128) NOT NULL,
-  last_name  VARCHAR(128) NOT NULL,
+  full_name VARCHAR(128) NOT NULL,
   email      VARCHAR(128) NOT NULL UNIQUE,
   password_hash VARCHAR(60) NOT NULL,   -- Keeping 'Bcrypt', usually inside 60
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -20,8 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS contacts (
   contact_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
-  first_name VARCHAR(128) NOT NULL,
-  last_name  VARCHAR(128) NOT NULL,
+  full_name VARCHAR(128) NOT NULL,
   email      VARCHAR(128),
   phone      VARCHAR(32),
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
