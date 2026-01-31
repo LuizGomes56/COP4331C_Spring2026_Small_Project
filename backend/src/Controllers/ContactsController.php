@@ -12,9 +12,7 @@ use mysqli;
 final class ContactsController {
 
     public function getContacts(Request $req, Response $res): Response {
-
-
-
+        return Responder::unimplemented($res);
     }
 
     public function createContact(Request $req, Response $res): Response {
@@ -25,17 +23,14 @@ final class ContactsController {
             return Responder::json($res, ["ok" => false, "error" => "Name and User ID are required"]);
         }
 
-        $conn = new mysqli("localhost", "root", "root", "contact_manager");
-        if ($conn->connect_error) {
-            return Responder::json($res, ["ok" => false, "error" => "Connection failed"]);
-        }
+        $conn = db();
 
         $stmt = $conn->prepare("INSERT INTO Contacts (Name, Phone, Email, UserID) VALUES (?, ?, ?, ?)");
-        
+
         // Empty strings if phone/email aren't provided
         $phone = $inData["phone"] ?? "";
         $email = $inData["email"] ?? "";
-        
+
         $stmt->bind_param("sssi", $inData["name"], $phone, $email, $inData["user_id"]);
 
         if ($stmt->execute()) {
@@ -48,23 +43,18 @@ final class ContactsController {
     }
 
     public function updateContact(Request $req, Response $res): Response {
-
-
+        return Responder::unimplemented($res);
     }
 
     public function replaceContact(Request $req, Response $res): Response {
-
-
+        return Responder::unimplemented($res);
     }
 
     public function deleteContact(Request $req, Response $res): Response {
-
-
+        return Responder::unimplemented($res);
     }
 
     public function searchContacts(Request $req, Response $res): Response {
-
-
+        return Responder::unimplemented($res);
     }
-
 }

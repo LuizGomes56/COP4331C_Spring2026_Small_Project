@@ -5,6 +5,10 @@ declare(strict_types=1);
 use Slim\Factory\AppFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 
 $app = AppFactory::create();
 
@@ -12,19 +16,25 @@ $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
 $app->addErrorMiddleware(true, true, true);
 
+function env(string $key, ?string $default = null): ?string {
+    return $_ENV[$key] ?? $_SERVER[$key] ?? $default;
+}
+
 function db(): mysqli {
-    static $conn = null;
+    $host = env('DB_HOST', '127.0.0.1');
+    $port = (int) env('DB_PORT', '3306');
+    $user = env('DB_USERNAME', 'root');
+    $pass = env('DB_PASSWORD', '');
+    $name = env('DB_DATABASE', 'contact_manager');
 
-    if ($conn instanceof mysqli) {
-        return $conn;
-    }
+    $conn = new mysqli($host, $user, $pass, $name, $port);
 
-    $conn = new mysqli('localhost', 'root', 'root', 'contact_manager');
     if ($conn->connect_error) {
-        throw new RuntimeException('DB connect error: ' . $conn->connect_error);
+        throw new RuntimeException("MySQL connect error: " . $conn->connect_error);
     }
 
     $conn->set_charset('utf8mb4');
+
     return $conn;
 }
 
