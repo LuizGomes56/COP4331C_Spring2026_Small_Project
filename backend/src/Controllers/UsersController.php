@@ -11,45 +11,53 @@ use App\Utils\Responder;
 final class UsersController {
     public function register(Request $req, Response $res): Response {
         $inData = Responder::getBody($req);
-        
-        $conn = new \SQLite3(__DIR__ . "/test.db");
 
-        //Check if User Exists
-        //$stmt = $conn->prepare("SELECT ID FROM Users WHERE Login = ?");
-        //$stmt->bind_param("s", $inData["login"]);
-        //$result = $stmt->get_result();
-        $stmt = $conn->prepare("SELECT id FROM Users WHERE Login = :login");
-        $stmt->bindValue(":login", $inData["login"], SQLITE3_TEXT);
-        $result = $stmt->execute();
+        $fullName = trim((string)($inData["full_name"] ?? ""));
+        $email    = trim((string)($inData["email"] ?? ""));
+        $password = trim((string)($inData["password"] ?? ""));
 
-        //If user was already registered (login conflict)
-        //if($row = $result->fetch_assoc() ) {
-        if( $result->fetchArray(SQLITE3_ASSOC) ) {
-            $json = ["ok" => false, "error" => "User Already Exists"];
-            return Responder::json($res, $json);
-        }
-        
-        //$passwordHash = password_hash($inData["password"], PASSWORD_DEFAULT);
-        //$stmt = $conn->prepare("INSERT INTO Users (Login, Password, Name) VALUES (?, ?, ?)");
-        //$stmt->bind_param("sss", $inData["login"], passwordHash, $inData["name"]);
-        
-        //Prepares to insert new User
-        $stmt = $conn->prepare("INSERT INTO Users (Login, Password, Name) VALUES (:login, :password, :name)");
-        $stmt->bindValue(":login", $inData["login"], SQLITE3_TEXT);
-        $stmt->bindValue(":password", password_hash($inData["password"], PASSWORD_DEFAULT), SQLITE3_TEXT);
-        $stmt->bindValue(":name", $inData["name"], SQLITE3_TEXT);
-
-        //If execution failure
-        if(!$stmt->execute()) {
-            $json = ["ok" => false, "error" => "Registration failed"];
-            return Responder::json($res, $json);
+        foreach (["full_name" => $fullName, "email" => $email, "password" => $password] as $field => $value) {
+            if ($value === "") {
+                return Responder::json($res, ["ok" => false, "error" => "Missing field `$field`"]);
+            }
         }
 
-        //Close DB and return success
+        $conn = db();
 
-        $conn->close();
+        // verifiy if user already exists
+        $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ? LIMIT 1");
+        if (!$stmt) {
+            return Responder::json($res, ["ok" => false, "error" => "Prepare failed: " . $conn->error]);
+        }
 
-        $json = ["ok" => true, "out" => "Registration successful"];
-        return Responder::json($res, $json);
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $stmt->close();
+            return Responder::json($res, ["ok" => false, "error" => "User Already Exists"]);
+        }
+        $stmt->close();
+
+        // insert new user (if gets here then there's no existent user)
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+
+        $stmt = $conn->prepare("INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)");
+        if (!$stmt) {
+            return Responder::json($res, ["ok" => false, "error" => "Prepare failed: " . $conn->error]);
+        }
+
+        $stmt->bind_param("sss", $fullName, $email, $hash);
+
+        if (!$stmt->execute()) {
+            $err = $stmt->error;
+            $stmt->close();
+            return Responder::json($res, ["ok" => false, "error" => "Registration failed: " . $err]);
+        }
+
+        $stmt->close();
+
+        return Responder::json($res, ["ok" => true, "out" => "Registration successful"]);
     }
 }

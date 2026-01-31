@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Controllers\ContactsController;
 use Slim\App;
 use App\Controllers\HealthController;
 use App\Controllers\UsersController;
