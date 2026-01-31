@@ -168,7 +168,7 @@ The most common HTTP request methods will be listed below. We can do everything 
 - **DELETE** - Method used when we want to delete something, also the same as POST method, but more descriptive
 - **PATCH** - Change only one single field of our database. Same as a POST method
 
-3. Define what routes our API will provide, what will be its inputs and outputs. The following code is just a suggestion of what routes I think we should implement, note that I'm defining only inputs and outputs, not the actual logic it will do
+3. Define what routes our API will provide, what will be its inputs and outputs. The following code is just a suggestion of what routes I think we should implement, note that I'm defining only inputs and outputs, not the actual logic it will do.
 
 ```ts
 type Routes = {
