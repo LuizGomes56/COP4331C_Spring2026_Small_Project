@@ -54,7 +54,37 @@ final class ContactsController {
         return Responder::unimplemented($res);
     }
 
-    public function searchContacts(Request $req, Response $res): Response {
-        return Responder::unimplemented($res);
+    public function searchContacts(Request $req, Response $res, array $args): Response {
+        $queryParams = $req->getQueryParams();
+
+        if (!isset($queryParams['user_id'])) {
+            return Responder::json($res, ["ok" => false, "error" => "User ID is required"]);
+        }
+
+        $search = $args['query'] ?? "";
+        $userId = (int) $queryParams['user_id'];
+
+        $conn = db();
+
+        $searchPattern = "%" . $search . "%";
+        $stmt = $conn->prepare(
+            "SELECT *
+             FROM contacts
+             WHERE user_id = ? AND (full_name LIKE ? OR email LIKE ? OR phone LIKE ? OR notes LIKE ?)"
+        );
+        $stmt->bind_param("issss", $userId, $searchPattern, $searchPattern, $searchPattern, $searchPattern);
+
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            $contacts = [];
+            while ($row = $result->fetch_assoc()) {
+                $contacts[] = $row;
+            }
+            $conn->close();
+            return Responder::json($res, ["ok" => true, "contacts" => $contacts]);
+        } else {
+            $conn->close();
+            return Responder::json($res, ["ok" => false, "error" => "Failed to search contacts"]);
+        }
     }
 }
