@@ -19,9 +19,10 @@ final class ContactsController {
         $inData = Responder::getBody($req);
 
         // Basic validation
-        if (!isset($inData['name']) || !isset($inData['user_id'])) {
-            return Responder::json($res, ["ok" => false, "error" => "Name and User ID are required"]);
+        if (!is_string($inData['name']) || !is_numeric($inData['user_id'])) {
+            return Responder::json($res, ["ok" => false, "error" => "The name must be a string and user_id must be a number"], 400);
         }
+
 
         $conn = db();
 
@@ -30,6 +31,14 @@ final class ContactsController {
         // Empty strings if phone/email aren't provided
         $phone = $inData["phone"] ?? "";
         $email = $inData["email"] ?? "";
+
+        if (!is_string($phone) || !is_string($email)) {
+            return Responder::json($res, ["ok" => false, "error" => "The phone and email must be strings"], 400);
+        }
+
+        if (!str_contains($email, "@")) {
+            return Responder::json($res, ["ok" => false, "error" => "The email must be a valid email"], 400);
+        }
 
         $stmt->bind_param("sssi", $inData["name"], $phone, $email, $inData["user_id"]);
 
@@ -57,11 +66,16 @@ final class ContactsController {
     public function searchContacts(Request $req, Response $res, array $args): Response {
         $queryParams = $req->getQueryParams();
 
-        if (!isset($queryParams['user_id'])) {
-            return Responder::json($res, ["ok" => false, "error" => "User ID is required"]);
+        if (!is_numeric($queryParams['user_id'])) {
+            return Responder::json($res, ["ok" => false, "error" => "The user_id must be a number"], 400);
         }
 
         $search = $args['query'] ?? "";
+
+        if (!is_string($search)) {
+            return Responder::json($res, ["ok" => false, "error" => "Search query must be a string"], 400);
+        }
+
         $userId = (int) $queryParams['user_id'];
 
         $conn = db();
@@ -84,7 +98,7 @@ final class ContactsController {
             return Responder::json($res, ["ok" => true, "contacts" => $contacts]);
         } else {
             $conn->close();
-            return Responder::json($res, ["ok" => false, "error" => "Failed to search contacts"]);
+            return Responder::json($res, ["ok" => false, "error" => "Failed to search contacts"], 500);
         }
     }
 }
