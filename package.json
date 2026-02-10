@@ -1,0 +1,27 @@
+{
+  "name": "cop4331c_spring2026_small_project",
+  "version": "1.0.0",
+  "description": "- Install PHP\r - Install Composer",
+  "main": "tests.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuizGomes56/COP4331C_Spring2026_Small_Project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/LuizGomes56/COP4331C_Spring2026_Small_Project/issues"
+  },
+  "homepage": "https://github.com/LuizGomes56/COP4331C_Spring2026_Small_Project#readme",
+  "dependencies": {
+    "jest": "^30.2.0"
+  },
+  "devDependencies": {
+    "jest-expect-message": "^1.1.3"
+  }
+}
