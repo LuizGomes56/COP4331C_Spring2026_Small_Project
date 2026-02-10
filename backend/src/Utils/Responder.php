@@ -7,6 +7,11 @@ namespace App\Utils;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
+const INTERNAL_SERVER_ERROR = 500;
+const BAD_REQUEST = 400;
+const UNAUTHORIZED = 401;
+const CONFLICT = 409;
+
 final class Responder {
     public static function unimplemented(Response $res): Response {
         return Responder::json($res, ["ok" => false, "error" => "Unimplemented"]);
