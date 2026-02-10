@@ -12,7 +12,37 @@ use mysqli;
 final class ContactsController {
 
     public function getContacts(Request $req, Response $res): Response {
-        return Responder::unimplemented($res);
+        $queryParams = $req->getQueryParams();
+
+        //Check if input is valid
+        if(!is_numeric($queryParams['user_id']) || ($queryParams['user_id'] === "")) {
+            return Responder::json($res, ["ok" => false, "error" => "The User ID is invalid"], 400);
+        }
+
+        $conn = db();
+
+        $userId = (int)$queryParams['user_id'];
+
+        //Search for all contacts relating to the user
+        $stmt = $conn->prepare("SELECT contact_id, full_name, email, phone, notes, created_at FROM contacts WHERE user_id = ?");
+
+        $stmt->bind_param("i", $userId);
+
+        if($stmt->execute()) {
+            $result = $stmt->get_result();
+            $results = [];
+            while($row = $result->fetch_assoc()) {
+                $results[] = $row;
+            }
+        } else {
+            $conn->close();
+            return Responder::json($res, ["ok" => false, "error" => "Failed to get contacts"]);
+        }
+
+        $conn->close();
+
+        return Responder::json($res, ["ok" => true, "contacts" => $results]);
+
     }
 
     public function createContact(Request $req, Response $res): Response {
@@ -55,8 +85,40 @@ final class ContactsController {
         return Responder::unimplemented($res);
     }
 
-    public function replaceContact(Request $req, Response $res): Response {
-        return Responder::unimplemented($res);
+    public function replaceContact(Request $req, Response $res, array $args): Response {
+        $inData = Responder::getbody($req);
+        
+        $contactID = $args['contact_id'] ?? "";
+
+        //Check the input
+        if(!is_numeric($contactID)) {
+            return Responder::json($res, ["ok" => false, "error" => "contact_id must be numeric"]);
+        }
+
+        if(!isset($inData['user_id'], $inData['full_name'], $inData['email'], $inData['phone'], $inData['notes'])) {
+            return Responder::json($res, ["ok" => false, "error" => "Missing required fields"]);
+        }
+
+        $conn = db();
+
+        $stmt = $conn->prepare("UPDATE contacts SET user_id = ?, full_name = ?, email = ?, phone = ?, notes = ? WHERE contact_id = ?");
+
+        $stmt->bind_param("issssi", $inData['user_id'], $inData['full_name'], $inData['email'], $inData['phone'], $inData['notes'], $contactID);
+
+        //Replace contact if found
+        if($stmt->execute()) {
+            if($stmt->affected_rows === 0) {
+                $conn->close();
+                return Responder::json($res, ["ok" => false, "error" => "Contact not found or nothing to replace"]);
+            }
+            $conn->close();
+
+            return Responder::json($res, ["ok" => true, "message" => "Contact replaced succesfully"]);
+        } else {
+            $conn->close();
+            return Responder::json($res, ["ok" => false, "error" => "Failed to replace contact"]);
+        }
+        
     }
 
     public function deleteContact(Request $req, Response $res): Response {
