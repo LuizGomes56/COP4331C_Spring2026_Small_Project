@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use Slim\Factory\AppFactory;
+use Slim\Handlers\Strategies\RequestHandler;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
 
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../vendor/autoload.php';
