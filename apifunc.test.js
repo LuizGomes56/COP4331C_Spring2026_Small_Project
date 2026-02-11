@@ -18,8 +18,9 @@ $app->get("/contacts/search/{query}", [ContactsController::class, "searchContact
 };
 */
 
-
-const ENDPOINT = "http://localhost:8000";
+// If testing with local server please please please please please change this to local server
+// and change it back 
+const ENDPOINT = "http://project.cop4331.cc";
 
 // import const describe = jest.describe;
 // console.log(jest);
@@ -39,7 +40,7 @@ const LOGIN_BODY = {
 
 
 async function login_test(login_body = LOGIN_BODY) {
-    const request = await fetch(ENDPOINT + "/users/login", {
+    const request = await fetch(ENDPOINT + "/api/users/login", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ async function login_test(login_body = LOGIN_BODY) {
 
 
 async function register_test(register_body = LOGIN_BODY) {
-    const request = await fetch(ENDPOINT + "/users/register", {
+    const request = await fetch(ENDPOINT + "/api/users/register", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -90,12 +91,22 @@ describe('Exisitng User API Endpoint testing', () => {
     });
 });
 
+const second_test_user =  {
+          email: "testing@testhouse.com",
+          password: "Password",
+          full_name: "Second_TestAcccount"
+        };
 
 describe("Creating new User and loging in", () => {
     test('Creating New User', async () => {
-
+      const data = await register_test(second_test_user);
+      expect(data.status).toBe(200);
+      expect(data.body).toEqual({ ok: true, out: "Registration successful" });
     });
-    test("login in", async () => {
+    test("login in as new user", async () => {
+        const data = await login_test();
+        expect(data.body.ok, `Login Error: ${data.body.error}, json body: ${JSON.stringify(LOGIN_BODY, 4)}`).toBe(true);
+        expect(typeof data.body.user_id).toBe(typeof int);
 
     });
 });
