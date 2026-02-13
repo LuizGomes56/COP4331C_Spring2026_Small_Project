@@ -17,6 +17,7 @@ return function (App $app): void {
         $app->get("/contacts", [ContactsController::class, "getContacts"]);
         // Creates a new contact
         $app->post("/contacts", [ContactsController::class, "createContact"]);
+        $app->get("/contacts/{contact_id}", [ContactsController::class, "getContactByID"]);
         // Updates only one field from some contact
         $app->patch("/contacts/{contact_id}", [ContactsController::class, "updateContact"]);
         // Replace the whole contact
