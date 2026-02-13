@@ -111,3 +111,14 @@ describe("Creating new User and loging in", () => {
     });
 });
 
+describe("Logging in and adding contacts", () => {
+
+});
+
+describe("Logging in and deleting contacts", () => {
+
+});
+
+describe("Deleting account and logging out", () => {
+
+});
