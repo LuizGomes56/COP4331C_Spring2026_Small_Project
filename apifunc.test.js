@@ -19,7 +19,7 @@ $app->get("/contacts/search/{query}", [ContactsController::class, "searchContact
 */
 
 
-const ENDPOINT = "http://localhost:8000";
+const ENDPOINT = "http://project.cop4331.cc/api";
 
 // import const describe = jest.describe;
 // console.log(jest);
