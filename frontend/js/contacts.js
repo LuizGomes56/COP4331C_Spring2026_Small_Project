@@ -8,22 +8,33 @@ let table_body = [
 ]
 
 function create_table(table_body) {
+    console.log('Create table being executed!');
     let result = `<table><thead><tr>`;
-
     for (header of ["Name", "Email", "Phone", "Actions"]) {
-        result += `<th>${header}</th>`
+          result += `<th>${header}</th>`;
+      }
+    if (table_body != null){
+      
+
+      result += `</tr></thead><tbody>`;
+
+      for (row of table_body) {
+          for (data of row) {
+              result += `<td>${data}</td>`;
+          }
+      }
     }
-
-    result += `</tr></thead><tbody>`
-
-    for (row of table_body) {
-        for (data of row) {
-            result += `<td>${data}</td>`
-        }
-    }
-
-    result += `</tbody></table>`
+    result += `</tbody></table>`;
+  $('#contacts-box').append(result);
 }
 
 function get_contacts() {
 }
+
+function init_table() {
+  console.log($('#contacts-box').val());
+  create_table(table_body);
+
+}
+
+$(document).ready(init_table());
