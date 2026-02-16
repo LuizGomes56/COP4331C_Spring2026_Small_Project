@@ -35,7 +35,7 @@ function create_table(table_body) {
     for (header of ["Name", "Email", "Phone", "Notes", "Actions"]) {
         result += `<th class="first:rounded-tl-xl last:rounded-tr-xl">${header}</th>`;
     }
-
+    let contact_ids = [];
     if (Array.isArray(table_body)) {
         result += `</tr></thead><tbody>`;
         for (object of table_body) {
@@ -49,6 +49,7 @@ function create_table(table_body) {
             ]) {
                 result += `<td>
                     <input
+                        id="${object[key]}_${object["contact_id"]}"
                         class="bg-transparent text-center w-fit"
                         type="text"
                         value="${object[key]}"
@@ -56,12 +57,35 @@ function create_table(table_body) {
                 </td>`;
             }
             result += `<td>${update_button(object["contact_id"])}</td></tr>`;
+          contact_ids.push(object["contact_id"]);
         }
     }
     result += `</tbody></table>`;
     $('#contact_table').append(result);
 }
 
+function bind_event_functions(contact_id) {
+  for (const contact_field of [
+    "full_name",
+    "email",
+    "phone",
+    "notes",
+  ]){
+    $(`${contact_field}_${contact_id}`).on("keypress", (event)=> {
+      if(event.key === "Enter") {
+        let field_value = $(`${contact_field}_${contact_id}`).val();
+        result = await update_contact_attribute(contact_field, contact_id);
+        //Result may be used to display to the users errors or something along those lines
+        /*So basically what it would look like would be like this
+         * if(result.error === true) {
+         * $("name_of_error_text_area").text(result.text);
+         *
+         * }
+         */
+      }
+    });
+  }
+}
 const CREATE_CONTACT_IDS = [
     "crc_full_name",
     "crc_email",
@@ -94,7 +118,7 @@ async function create_contact_api() {
 }
 
 const UPDATE_CONTACT_IDS = [
-    "updated_first_name",
+    "updated_full_name",
     "updated_email",
     "updated_phone",
     "updated_notes",
@@ -125,6 +149,18 @@ async function update_contact_api() {
     const response = await request.json();
     console.log(response);
     return response
+}
+/**
+ * @param {string} contact_attribute
+ * @param {number} contact_id
+ *
+ */
+async function update_contact_attribute() {
+
+}
+
+async function update_text_box_event() {
+
 }
 
 function create_contact() {
