@@ -74,7 +74,7 @@ function bind_event_functions(contact_id) {
     $(`${contact_field}_${contact_id}`).on("keypress", (event)=> {
       if(event.key === "Enter") {
         let field_value = $(`${contact_field}_${contact_id}`).val();
-        result = await update_contact_attribute(contact_field, contact_id);
+        result = await update_contact_attribute(contact_field, contact_id, field_value);
         //Result may be used to display to the users errors or something along those lines
         /*So basically what it would look like would be like this
          * if(result.error === true) {
@@ -153,14 +153,24 @@ async function update_contact_api() {
 /**
  * @param {string} contact_attribute
  * @param {number} contact_id
- *
+ * @returns {Object} result
  */
-async function update_contact_attribute() {
+async function update_contact_attribute(contact_attribute, contact_id, new_value) {
+  user_id = Number(localStorage.getItem("user_id"));
+  const request = await fetch(ENDPOINT, {
+        method: "PATCH",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: contact_id,
+          contact_attribute: new_value, //Might need to be `${contact_attribute}`
+        }),
+      });
+  const response = await request.json();
 
-}
-
-async function update_text_box_event() {
-
+  return response.body;
+  }
 }
 
 function create_contact() {
