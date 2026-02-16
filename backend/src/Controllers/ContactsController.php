@@ -165,10 +165,10 @@ final class ContactsController {
         }
     }
 
-    public function replaceContact(Request $req, Response $res, array $args): Response {
+    public function replaceContact(Request $req, Response $res): Response {
         $inData = Responder::getbody($req);
         
-        $contactID = $args['contact_id'] ?? "";
+        $contactID = $inData['contact_id'] ?? "";
 
         //Check the input
         if(!is_numeric($contactID)) {

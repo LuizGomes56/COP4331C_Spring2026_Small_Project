@@ -21,7 +21,7 @@ return function (App $app): void {
         // Updates only one field from some contact
         $app->patch("/contacts/{contact_id}", [ContactsController::class, "updateContact"]);
         // Replace the whole contact
-        $app->put("/contacts/{contact_id}", [ContactsController::class, "replaceContact"]);
+        $app->put("/contacts", [ContactsController::class, "replaceContact"]);
         // Deletes a contact
         $app->delete("/contacts/{contact_id}", [ContactsController::class, "deleteContact"]);
         // lists contacts with partial search match.
