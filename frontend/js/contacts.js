@@ -157,13 +157,12 @@ async function update_contact_api() {
  */
 async function update_contact_attribute(contact_attribute, contact_id, new_value) {
   user_id = Number(localStorage.getItem("user_id"));
-  const request = await fetch(ENDPOINT, {
+  const request = await fetch(ENDPOINT + "${contact_id}", {
         method: "PATCH",
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          id: contact_id,
           contact_attribute: new_value, //Might need to be `${contact_attribute}`
         }),
       });
