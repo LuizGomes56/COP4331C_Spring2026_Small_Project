@@ -71,7 +71,7 @@ function bind_event_functions(contact_id) {
     "phone",
     "notes",
   ]){
-    $(`${contact_field}_${contact_id}`).on("keypress", (event)=> {
+    $(`${contact_field}_${contact_id}`).on("keypress", async (event)=> {
       if(event.key === "Enter") {
         let field_value = $(`${contact_field}_${contact_id}`).val();
         result = await update_contact_attribute(contact_field, contact_id, field_value);
@@ -169,8 +169,8 @@ async function update_contact_attribute(contact_attribute, contact_id, new_value
   const response = await request.json();
 
   return response.body;
-  }
 }
+
 
 function create_contact() {
     console.log("Called create contact");
