@@ -5,7 +5,7 @@ const NotificationStandards = {
       text-red-200
       border-red-500
     `,
-        defaultMsg: "Ocorreu um erro",
+        defaultMsg: "An error occurred",
     },
     success: {
         classes: `
@@ -13,7 +13,7 @@ const NotificationStandards = {
       text-emerald-200
       border-emerald-500
     `,
-        defaultMsg: "Sucesso na requisição!",
+        defaultMsg: "Request successful",
     },
     warning: {
         classes: `
@@ -21,7 +21,7 @@ const NotificationStandards = {
       text-yellow-200
       border-yellow-500
     `,
-        defaultMsg: "Algum aviso foi lançado",
+        defaultMsg: "Warning",
     },
     info: {
         classes: `
@@ -29,7 +29,7 @@ const NotificationStandards = {
       text-blue-200
       border-blue-500
     `,
-        defaultMsg: "Nenhuma alteração feita",
+        defaultMsg: "No changes",
     },
 };
 
