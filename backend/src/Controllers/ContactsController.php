@@ -44,6 +44,37 @@ final class ContactsController {
         return Responder::json($res, ["ok" => true, "contacts" => $results]);
     }
 
+    public function getContactByID(Request $req, Response $res, array $args): Response {
+        $contactId = $args['contact_id'] ?? "";
+
+        if (!is_numeric($contactId)) {
+            return Responder::json($res, ["ok" => false, "error" => "contact_id must be numeric"], 400);
+        }
+
+        $contactId = (int) $contactId;
+
+        $conn = db();
+
+        $stmt = $conn->prepare("SELECT contact_id, user_id, full_name, email, phone, notes, created_at FROM contacts WHERE contact_id = ?");
+        $stmt->bind_param("i", $contactId);
+
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            $contact = $result->fetch_assoc();
+
+            if ($contact === null) {
+                $conn->close();
+                return Responder::json($res, ["ok" => false, "error" => "Contact not found"], 404);
+            }
+
+            $conn->close();
+            return Responder::json($res, ["ok" => true, "contact" => $contact]);
+        } else {
+            $conn->close();
+            return Responder::json($res, ["ok" => false, "error" => "Failed to get contact"], 500);
+        }
+    }
+
     public function createContact(Request $req, Response $res): Response {
         $inData = Responder::getBody($req);
 
