@@ -1,5 +1,14 @@
 <!DOCTYPE html>
+<script defer src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous">
+    </script>
+<script defer src="js/utils.js"></script>
+<script defer src="js/contacts.js"></script>
+<script defer src="js/notification.js"></script>
+<link rel="stylesheet" href="cssstyles/contacts.css">
 <html lang="en">
+
 
 <head>
     <meta charset="UTF-8">
@@ -8,6 +17,42 @@
 </head>
 
 <body>
+    <div id="notification-root" class="fixed top-12 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-4"></div>
+    <h2 class="text-3xl font-bold text-center my-16">Registered contacts</h2>
+    <div id="create_contact_form" class="hidden flex-col gap-4 max-w-xs
+     w-full bg-zinc-900 border border-zinc-700 p-4 rounded-md absolute left-1/2 -translate-x-1/2">
+        <h2 class="my-4 text-lg font-bold">Creating a new contact</h2>
+        <div class="flex flex-col gap-4">
+            <input type="text" id="crc_full_name" placeholder="Full Name" />
+            <input type="email" id="crc_email" placeholder="Email" />
+            <input type="text" id="crc_phone" placeholder="Phone" />
+            <input type="text" id="crc_notes" placeholder="Notes" />
+        </div>
+        <div class="mt-4 text-red-500" id="crc_error"></div>
+        <div class="place-self-end flex gap-2 mt-4">
+            <button class="bg-red-500 py-2 px-4 rounded-md" id="crc_cancel" type="cancel">Cancel</button>
+            <button class="bg-emerald-500 py-2 px-4 rounded-md" id="crc_submit" type="submit">Submit</button>
+        </div>
+    </div>
+    <div class="hidden" id="update_dialog" title="Update User"
+        class="flex flex-col gap-4 max-w-xs w-full bg-zinc-900 p-4 rounded-md absolute" hidden>
+        <div class="flex flex-col gap-4">
+            <input type="text" id="updated_first_name" placeholder="Full Name" />
+            <input type="email" id="updated_email" placeholder="Email" />
+            <input type="text" id="updated_phone" placeholder="Phone" />
+            <input type="text" id="updated_notes" placeholder="Notes" />
+        </div>
+        <div class="place-self-end flex gap-2">
+            <button class="bg-red-500 py-2 px-4 rounded-md" id="updated_cancel" type="cancel">Cancel</button>
+            <button class="bg-emerald-500 py-2 px-4 rounded-md" id="update_submit" type="submit">Submit</button>
+        </div>
+    </div>
+    <div id="contacts_box" class="max-w-5xl place-self-center flex flex-col gap-4">
+        <button id="create_contact" class="px-4 py-2 w-fit bg-emerald-800 rounded-md font-medium">Create
+            Contact</button>
+        <div id="contact_table" class=" overflow-x-auto"></div>
+    </div>
+
 </body>
 
 </html>

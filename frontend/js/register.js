@@ -17,7 +17,8 @@ let invalid_div = null;
 let field_missing_text = null;
 let invalid_input_text = null;
 
-let register_api_point = "http://localhost:8080/users/register";
+let register_api_point = `${BASE_ENDPOINT}/users/register`;
+// let register_api_point = "http://project.cop4331.cc/api/users/register";
 //TODO: Unimplemented webpage
 //Will discuss further about customer dashboard
 let customer_dashboard_url = "";

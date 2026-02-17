@@ -40,7 +40,7 @@ const login = async () => {
     };
 
     try {
-        const request = await fetch("http://localhost:8080/users/login", {
+        const request = await fetch(`${BASE_ENDPOINT}/users/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -62,7 +62,7 @@ const login = async () => {
             localStorage.setItem("user_id", response.user_id);
             localStorage.setItem("full_name", response.full_name);
             document.getElementById("login_message").innerText = "Login successful, redirecting to main page...";
-            window.location.href = "/contacts";
+            window.location.href = "/frontend/contacts.html";
         }
     } catch (e) {
         if (e instanceof Error) {

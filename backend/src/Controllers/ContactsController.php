@@ -15,7 +15,7 @@ final class ContactsController {
         $queryParams = $req->getQueryParams();
 
         //Check if input is valid
-        if(!is_numeric($queryParams['user_id']) || ($queryParams['user_id'] === "")) {
+        if (!is_numeric($queryParams['user_id']) || ($queryParams['user_id'] === "")) {
             return Responder::json($res, ["ok" => false, "error" => "The User ID is invalid"], 400);
         }
 
@@ -28,10 +28,10 @@ final class ContactsController {
 
         $stmt->bind_param("i", $userId);
 
-        if($stmt->execute()) {
+        if ($stmt->execute()) {
             $result = $stmt->get_result();
             $results = [];
-            while($row = $result->fetch_assoc()) {
+            while ($row = $result->fetch_assoc()) {
                 $results[] = $row;
             }
         } else {
@@ -42,7 +42,6 @@ final class ContactsController {
         $conn->close();
 
         return Responder::json($res, ["ok" => true, "contacts" => $results]);
-
     }
 
     public function getContactByID(Request $req, Response $res, array $args): Response {
@@ -80,7 +79,7 @@ final class ContactsController {
         $inData = Responder::getBody($req);
 
         // Basic validation
-        if (!is_string($inData['name']) || !is_numeric($inData['user_id'])) {
+        if (!is_string($inData['full_name']) || !is_numeric($inData['user_id'])) {
             return Responder::json($res, ["ok" => false, "error" => "The name must be a string and user_id must be a number"], 400);
         }
 
@@ -103,7 +102,7 @@ final class ContactsController {
             return Responder::json($res, ["ok" => false, "error" => "The email must be a valid email"], 400);
         }
 
-        $stmt->bind_param("sssi", $inData["name"], $phone, $email, $inData["user_id"]);
+        $stmt->bind_param("ssssi", $fullName, $phone, $email, $notes, $userId);
 
         if ($stmt->execute()) {
             $conn->close();
@@ -122,25 +121,25 @@ final class ContactsController {
         $types = "";
         $values = [];
 
-        if (isset($inData['full_name'])) { 
-            $fields[] = "full_name=?"; 
-            $types .= "s"; 
-            $values[] = $inData['full_name']; 
+        if (isset($inData['full_name'])) {
+            $fields[] = "full_name=?";
+            $types .= "s";
+            $values[] = $inData['full_name'];
         }
-        if (isset($inData['phone'])) { 
-            $fields[] = "phone=?"; 
-            $types .= "s"; 
-            $values[] = $inData['phone']; 
+        if (isset($inData['phone'])) {
+            $fields[] = "phone=?";
+            $types .= "s";
+            $values[] = $inData['phone'];
         }
-        if (isset($inData['email'])) { 
-            $fields[] = "email=?"; 
-            $types .= "s"; 
-            $values[] = $inData['email']; 
+        if (isset($inData['email'])) {
+            $fields[] = "email=?";
+            $types .= "s";
+            $values[] = $inData['email'];
         }
-        if (isset($inData['notes'])) { 
-            $fields[] = "notes=?"; 
-            $types .= "s"; 
-            $values[] = $inData['notes']; 
+        if (isset($inData['notes'])) {
+            $fields[] = "notes=?";
+            $types .= "s";
+            $values[] = $inData['notes'];
         }
 
         if (empty($fields)) {
@@ -148,7 +147,7 @@ final class ContactsController {
         }
 
         $conn = db();
-        
+
         $sql = "UPDATE contacts SET " . implode(", ", $fields) . " WHERE contact_id=?";
         $types .= "i";
         $values[] = $contactId;
@@ -167,15 +166,15 @@ final class ContactsController {
 
     public function replaceContact(Request $req, Response $res, array $args): Response {
         $inData = Responder::getbody($req);
-        
+
         $contactID = $args['contact_id'] ?? "";
 
         //Check the input
-        if(!is_numeric($contactID)) {
+        if (!is_numeric($contactID)) {
             return Responder::json($res, ["ok" => false, "error" => "contact_id must be numeric"]);
         }
 
-        if(!isset($inData['user_id'], $inData['full_name'], $inData['email'], $inData['phone'], $inData['notes'])) {
+        if (!isset($inData['user_id'], $inData['full_name'], $inData['email'], $inData['phone'], $inData['notes'])) {
             return Responder::json($res, ["ok" => false, "error" => "Missing required fields"]);
         }
 
@@ -186,8 +185,8 @@ final class ContactsController {
         $stmt->bind_param("issssi", $inData['user_id'], $inData['full_name'], $inData['email'], $inData['phone'], $inData['notes'], $contactID);
 
         //Replace contact if found
-        if($stmt->execute()) {
-            if($stmt->affected_rows === 0) {
+        if ($stmt->execute()) {
+            if ($stmt->affected_rows === 0) {
                 $conn->close();
                 return Responder::json($res, ["ok" => false, "error" => "Contact not found or nothing to replace"]);
             }
@@ -198,7 +197,6 @@ final class ContactsController {
             $conn->close();
             return Responder::json($res, ["ok" => false, "error" => "Failed to replace contact"]);
         }
-        
     }
 
     public function deleteContact(Request $req, Response $res, array $args): Response {

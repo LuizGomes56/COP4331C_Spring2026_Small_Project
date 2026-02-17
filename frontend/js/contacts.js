@@ -1,1 +1,311 @@
 // Todo
+// Add header to show user name, and add logout function to the header
+// This would be to delete the user id from the local storage.
+// We assume that we do not need to delete the account 
+// http://127.0.0.1:5500/frontend/contacts.html
+
+
+
+// let table_body = [
+//     ["CHANGE", "test@gmail.com", "1564352", `<div>${VIEW_BUTTON}</div>`],
+// ]
+
+let REQUEST_CONTROL = false;
+
+// 
+const ENDPOINT = `${BASE_ENDPOINT}/contacts`;
+const SEARCH_SUFFIX = "/search/";
+
+function update_button(contact_id) {
+    return `<button 
+        class="bg-rose-800 text-center text-white px-4 py-1.5 rounded-md" 
+        onClick="delete_contact(${contact_id})"
+    >
+        Delete
+    </button>`;
+}
+
+/** 
+ * @param {{
+ *  contact_id: number,
+ *  created_at: string,
+ *  email: string,
+ *  full_name: string,
+ *  notes: string,
+ *  phone: string
+ * }[]} table_body
+ */
+function create_table(table_body) {
+    if (table_body.length == 0) {
+        document.getElementById("contact_table").innerHTML = `
+        <h2 class="text-3xl font-bold text-center my-16">You have no registered contacts!</h2>`
+        return;
+    }
+    let result = `<table><thead><tr>`;
+    for (header of ["Name", "Email", "Phone", "Notes", "Actions"]) {
+        result += `<th class="first:rounded-tl-xl last:rounded-tr-xl">${header}</th>`;
+    }
+    let contact_ids = [];
+    if (Array.isArray(table_body)) {
+        result += `</tr></thead><tbody>`;
+        for (object of table_body) {
+            result += `<tr>`;
+            for (const key of [
+                "full_name",
+                "email",
+                "phone",
+                "notes",
+                //"created_at"
+            ]) {
+                result += `<td>
+                    <input
+                        id="${key}_${object["contact_id"]}"
+                        class="bg-transparent text-center w-fit"
+                        type="text"
+                        value="${object[key]}"
+                    ></input>
+                </td>`;
+            }
+            result += `<td>${update_button(object["contact_id"])}</td></tr>`;
+            contact_ids.push(object["contact_id"]);
+        }
+    }
+    result += `</tbody></table>`;
+    document.getElementById("contact_table").innerHTML = result;
+    return contact_ids;
+
+}
+
+function findEvents(element) {
+
+    var events = element.data('events');
+    if (events !== undefined)
+        return events;
+
+    events = $.data(element, 'events');
+    if (events !== undefined)
+        return events;
+
+    events = $._data(element, 'events');
+    if (events !== undefined)
+        return events;
+
+    events = $._data(element[0], 'events');
+    if (events !== undefined)
+        return events;
+
+    return undefined;
+}
+
+function bind_event_functions(contact_id) {
+    for (const contact_field of [
+        "full_name",
+        "email",
+        "phone",
+        "notes",
+    ]) {
+        element = `#${contact_field}_${contact_id}`;
+        console.log(element)
+        $(element).on("keypress", async (event) => {
+            console.log("Event Occured");
+            if (event.which === 13) {
+                let field_value = $(`#${contact_field}_${contact_id}`).val();
+                result = await update_contact_attribute(contact_field, contact_id, field_value);
+                //Result may be used to display to the users errors or something along those lines
+                /*So basically what it would look like would be like this
+                 * if(result.error === true) {
+                 * $("name_of_error_text_area").text(result.text);
+                 *
+                 * }
+                 */
+            }
+        });
+    }
+}
+const CREATE_CONTACT_IDS = [
+    "crc_full_name",
+    "crc_email",
+    "crc_phone",
+    "crc_notes"
+];
+
+async function create_contact_api() {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
+    let [full_name, email, phone, notes] = CREATE_CONTACT_IDS.map(id => document.getElementById(id).value);
+    let user_id = Number(localStorage.getItem("user_id"));
+    let body = {
+        user_id,
+        full_name,
+        email,
+        phone,
+        notes
+    };
+    console.log(body);
+    const request = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const response = await request.json();
+    console.log(response);
+
+    if (!response.ok && response.error) {
+        $("#crc_error").text(response.error);
+        notify("error", response.error);
+    }
+
+    REQUEST_CONTROL = false;
+    return response;
+}
+
+const UPDATE_CONTACT_IDS = [
+    "updated_full_name",
+    "updated_email",
+    "updated_phone",
+    "updated_notes",
+];
+
+
+// TODO: Check for empty field and replace them with original content,
+// TODO: Setup the PUT method
+async function update_contact_api() {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
+
+    let [full_name, email, phone, notes] = UPDATE_CONTACT_IDS.map(id => document.getElementById(id).value);
+    let user_id = Number(localStorage.getItem("user_id"));
+    let body = {
+        user_id,
+        full_name,
+        email,
+        phone,
+        notes
+    };
+    console.log(body);
+    const request = await fetch(ENDPOINT, {
+        method: "PUT",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const response = await request.json();
+    console.log(response);
+    REQUEST_CONTROL = false;
+    return response
+}
+/**
+ * @param {string} contact_attribute
+ * @param {number} contact_id
+ * @returns {Object} result
+ */
+async function update_contact_attribute(contact_attribute, contact_id, new_value) {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
+
+    user_id = Number(localStorage.getItem("user_id"));
+    console.log(ENDPOINT + "/" + `${contact_id}`)
+    let body = {
+        [contact_attribute]: new_value, //Might need to be `${contact_attribute}`
+    };
+
+    const request = await fetch(ENDPOINT + "/" + `${contact_id}`, {
+        method: "PATCH",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
+    });
+    const response = await request.json();
+
+    REQUEST_CONTROL = false;
+    return response.body;
+}
+
+async function delete_contact(contact_id) {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
+
+    const request = await fetch(ENDPOINT + "/" + `${contact_id}`, {
+        method: "DELETE",
+    });
+    const response = await request.json();
+    console.log(response);
+    if (response.ok) {
+        notify("success", response.message);
+    } else {
+        notify("error", response.error);
+    }
+
+    REQUEST_CONTROL = false;
+    await init_table();
+}
+
+function create_contact() {
+    let form = document.getElementById("create_contact_form");
+    form.classList.add("flex");
+    form.classList.remove("hidden");
+    const cancel = () => CREATE_CONTACT_IDS.forEach(id => {
+        document.getElementById(id).value = "";
+    });
+    $("#crc_cancel").on("click", cancel);
+    $("#crc_submit").on("click", async () => {
+        console.log("Did some HTTP request")
+        const response = await create_contact_api();
+        notify("success", response.message);
+        form.classList.add("hidden");
+        form.classList.remove("flex");
+        cancel();
+        await init_table();
+    })
+}
+
+/**
+ * 
+ * @returns {{
+ *  contact_id: number,
+ *  created_at: string,
+ *  email: string,
+ *  full_name: string,
+ *  notes: string,
+ *  phone: string
+ * }[]}
+ */
+async function get_contacts() {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
+
+    const user_id = localStorage.getItem("user_id");
+    const request = await fetch(ENDPOINT + `?user_id=${user_id}`, {
+        method: 'GET',
+    });
+
+    const response = await request.json();
+
+    console.log(response);
+    REQUEST_CONTROL = false;
+    return response.contacts
+}
+
+async function init_table() {
+    // $("#update_dialog_button").toggle("hidden", false);
+    $("#create_contact").on("click", create_contact);
+    let user_id = localStorage.getItem("user_id");
+    if (!user_id) {
+        window.location.href = "login.html";
+    }
+    console.log($('#contacts-box').val());
+    const table_body = await get_contacts();
+    const contact_ids = create_table(table_body);
+    contact_ids.forEach((element) => {
+        bind_event_functions(element);
+    });
+
+}
+
+$(document).ready(init_table());

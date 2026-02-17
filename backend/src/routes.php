@@ -7,6 +7,9 @@ use Slim\App;
 use App\Controllers\HealthController;
 use App\Controllers\UsersController;
 
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+
 return function (App $app): void {
         $app->setBasePath("/api");
         $app->get("/health", [HealthController::class, "health"]);
