@@ -63,7 +63,7 @@ function notify(type, msg) {
         render();
     }, 10);
 
-    setTimeout(() => destroy(id), 80000);
+    setTimeout(() => destroy(id), 5000);
 }
 
 function destroy(id) {

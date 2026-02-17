@@ -10,6 +10,8 @@
 //     ["CHANGE", "test@gmail.com", "1564352", `<div>${VIEW_BUTTON}</div>`],
 // ]
 
+let REQUEST_CONTROL = false;
+
 // 
 const ENDPOINT = "http://localhost:8000/api/contacts";
 const SEARCH_SUFFIX = "/search/";
@@ -34,6 +36,11 @@ function update_button(contact_id) {
  * }[]} table_body
  */
 function create_table(table_body) {
+    if (table_body.length == 0) {
+        document.getElementById("contact_table").innerHTML = `
+        <h2 class="text-3xl font-bold text-center my-16">You have no registered contacts!</h2>`
+        return;
+    }
     let result = `<table><thead><tr>`;
     for (header of ["Name", "Email", "Phone", "Notes", "Actions"]) {
         result += `<th class="first:rounded-tl-xl last:rounded-tr-xl">${header}</th>`;
@@ -123,6 +130,8 @@ const CREATE_CONTACT_IDS = [
 ];
 
 async function create_contact_api() {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
     let [full_name, email, phone, notes] = CREATE_CONTACT_IDS.map(id => document.getElementById(id).value);
     let user_id = Number(localStorage.getItem("user_id"));
     let body = {
@@ -149,6 +158,7 @@ async function create_contact_api() {
         notify("error", response.error);
     }
 
+    REQUEST_CONTROL = false;
     return response;
 }
 
@@ -163,6 +173,9 @@ const UPDATE_CONTACT_IDS = [
 // TODO: Check for empty field and replace them with original content,
 // TODO: Setup the PUT method
 async function update_contact_api() {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
+
     let [full_name, email, phone, notes] = UPDATE_CONTACT_IDS.map(id => document.getElementById(id).value);
     let user_id = Number(localStorage.getItem("user_id"));
     let body = {
@@ -183,6 +196,7 @@ async function update_contact_api() {
 
     const response = await request.json();
     console.log(response);
+    REQUEST_CONTROL = false;
     return response
 }
 /**
@@ -191,6 +205,9 @@ async function update_contact_api() {
  * @returns {Object} result
  */
 async function update_contact_attribute(contact_attribute, contact_id, new_value) {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
+
     user_id = Number(localStorage.getItem("user_id"));
     console.log(ENDPOINT + "/" + `${contact_id}`)
     let body = {
@@ -206,10 +223,14 @@ async function update_contact_attribute(contact_attribute, contact_id, new_value
     });
     const response = await request.json();
 
+    REQUEST_CONTROL = false;
     return response.body;
 }
 
 async function delete_contact(contact_id) {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
+
     const request = await fetch(ENDPOINT + "/" + `${contact_id}`, {
         method: "DELETE",
     });
@@ -220,22 +241,26 @@ async function delete_contact(contact_id) {
     } else {
         notify("error", response.error);
     }
+
+    REQUEST_CONTROL = false;
     await init_table();
 }
 
 function create_contact() {
-    console.log("Called create contact");
-    $("#create_contact_form").toggleClass("hidden", "flex");
-    $("#crc_cancel").on("click", async () => {
-        CREATE_CONTACT_IDS.forEach(id => {
-            document.getElementById(id).value = "";
-        })
-    })
+    let form = document.getElementById("create_contact_form");
+    form.classList.add("flex");
+    form.classList.remove("hidden");
+    const cancel = () => CREATE_CONTACT_IDS.forEach(id => {
+        document.getElementById(id).value = "";
+    });
+    $("#crc_cancel").on("click", cancel);
     $("#crc_submit").on("click", async () => {
         console.log("Did some HTTP request")
         const response = await create_contact_api();
         notify("success", response.message);
-        $("#create_contact_form").toggleClass("hidden", "flex");
+        form.classList.add("hidden");
+        form.classList.remove("flex");
+        cancel();
         await init_table();
     })
 }
@@ -252,6 +277,9 @@ function create_contact() {
  * }[]}
  */
 async function get_contacts() {
+    if (REQUEST_CONTROL) return;
+    REQUEST_CONTROL = true;
+
     const user_id = localStorage.getItem("user_id");
     const request = await fetch(ENDPOINT + `?user_id=${user_id}`, {
         method: 'GET',
@@ -260,6 +288,7 @@ async function get_contacts() {
     const response = await request.json();
 
     console.log(response);
+    REQUEST_CONTROL = false;
     return response.contacts
 }
 
@@ -273,7 +302,6 @@ async function init_table() {
     console.log($('#contacts-box').val());
     const table_body = await get_contacts();
     const contact_ids = create_table(table_body);
-    console.log($("#full_name_2")[0]);
     contact_ids.forEach((element) => {
         bind_event_functions(element);
     });
