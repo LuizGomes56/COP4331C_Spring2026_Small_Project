@@ -62,7 +62,7 @@ const login = async () => {
             localStorage.setItem("user_id", response.user_id);
             localStorage.setItem("full_name", response.full_name);
             document.getElementById("login_message").innerText = "Login successful, redirecting to main page...";
-            window.location.href = "/frontend/contacts.html";
+            window.location.href = "/contacts.html";
         }
     } catch (e) {
         if (e instanceof Error) {

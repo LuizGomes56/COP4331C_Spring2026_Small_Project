@@ -36,6 +36,14 @@ const NotificationStandards = {
 const notifications = [];
 const root = document.getElementById("notification-root");
 
+function genId() {
+    return (
+        Date.now().toString(36) +
+        Math.random().toString(36).slice(2)
+    );
+}
+
+
 /**
  * 
  * @param {"success" | "info" | "error" | "warning"} type 
@@ -45,7 +53,7 @@ const root = document.getElementById("notification-root");
 function notify(type, msg) {
     if (msg && notifications.some(n => n.msg === msg)) return;
 
-    const id = crypto.randomUUID();
+    const id = genId();
 
     const notification = {
         id,

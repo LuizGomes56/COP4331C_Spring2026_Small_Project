@@ -34,22 +34,14 @@
             <button class="bg-emerald-500 py-2 px-4 rounded-md" id="crc_submit" type="submit">Submit</button>
         </div>
     </div>
-    <div class="hidden" id="update_dialog" title="Update User"
-        class="flex flex-col gap-4 max-w-xs w-full bg-zinc-900 p-4 rounded-md absolute" hidden>
-        <div class="flex flex-col gap-4">
-            <input type="text" id="updated_first_name" placeholder="Full Name" />
-            <input type="email" id="updated_email" placeholder="Email" />
-            <input type="text" id="updated_phone" placeholder="Phone" />
-            <input type="text" id="updated_notes" placeholder="Notes" />
-        </div>
-        <div class="place-self-end flex gap-2">
-            <button class="bg-red-500 py-2 px-4 rounded-md" id="updated_cancel" type="cancel">Cancel</button>
-            <button class="bg-emerald-500 py-2 px-4 rounded-md" id="update_submit" type="submit">Submit</button>
-        </div>
-    </div>
     <div id="contacts_box" class="max-w-5xl place-self-center flex flex-col gap-4">
-        <button id="create_contact" class="px-4 py-2 w-fit bg-emerald-800 rounded-md font-medium">Create
-            Contact</button>
+        <div class="flex gap-4">
+            <button id="create_contact" class="px-4 py-2 w-fit bg-emerald-800 rounded-md font-medium">Create
+                Contact</button>
+            <input type="search" id="search_contacts" placeholder="Search contacts"
+                class="flex-1 px-4 py-2 w-full bg-zinc-800 text-white rounded-md"
+                oninput="search_contacts(this.value)" />
+        </div>
         <div id="contact_table" class=" overflow-x-auto"></div>
     </div>
 
