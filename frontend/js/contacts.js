@@ -13,7 +13,7 @@
 let REQUEST_CONTROL = false;
 
 // 
-const ENDPOINT = "http://localhost:8000/api/contacts";
+const ENDPOINT = `${BASE_ENDPOINT}/contacts`;
 const SEARCH_SUFFIX = "/search/";
 
 function update_button(contact_id) {

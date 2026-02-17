@@ -40,7 +40,7 @@ const login = async () => {
     };
 
     try {
-        const request = await fetch("http://127.0.0.1:8000/api/users/login", {
+        const request = await fetch(`${BASE_ENDPOINT}/users/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
