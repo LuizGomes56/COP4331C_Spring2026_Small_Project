@@ -4,13 +4,55 @@
 // We assume that we do not need to delete the account 
 // http://127.0.0.1:5500/frontend/contacts.html
 
-
-
 // let table_body = [
 //     ["CHANGE", "test@gmail.com", "1564352", `<div>${VIEW_BUTTON}</div>`],
 // ]
 
 let REQUEST_CONTROL = false;
+
+async function search_contacts(query) {
+    console.log("Search function was called with query: " + query);
+
+    if (!query || !query.trim()) {
+        await init_table();
+        return;
+    }
+
+    let user_id = localStorage.getItem("user_id");
+
+    if (!user_id) {
+        notify("error", "Can't search contacts without user_id being defined");
+    }
+
+    try {
+        const url =
+            `${BASE_ENDPOINT}/contacts/search/${encodeURIComponent(query)}` +
+            `?user_id=${user_id}`;
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || "Failed to search for new contacts");
+        }
+
+        const data = await response.json();
+
+        if (!data.ok) {
+            throw new Error(data.error || "Search query returned an error");
+        }
+
+        create_table(data.contacts, "No contacts match your search query");
+    } catch (err) {
+        console.error(err);
+        notify("error", err.message);
+    }
+}
 
 // 
 const ENDPOINT = `${BASE_ENDPOINT}/contacts`;
@@ -35,10 +77,10 @@ function update_button(contact_id) {
  *  phone: string
  * }[]} table_body
  */
-function create_table(table_body) {
+function create_table(table_body, message = "You have no registered contacts!") {
     if (table_body.length == 0) {
         document.getElementById("contact_table").innerHTML = `
-        <h2 class="text-3xl font-bold text-center my-16">You have no registered contacts!</h2>`
+        <h2 class="text-3xl font-bold text-center my-16">${message}</h2>`
         return;
     }
     let result = `<table><thead><tr>`;
@@ -293,7 +335,6 @@ async function get_contacts() {
 }
 
 async function init_table() {
-    // $("#update_dialog_button").toggle("hidden", false);
     $("#create_contact").on("click", create_contact);
     let user_id = localStorage.getItem("user_id");
     if (!user_id) {
