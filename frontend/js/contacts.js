@@ -370,3 +370,8 @@ async function init_table() {
 }
 
 $(document).ready(init_table());
+
+function logout() {
+  localStorage.removeItem("user_id");
+  window.location.href = "/login.html";
+}
