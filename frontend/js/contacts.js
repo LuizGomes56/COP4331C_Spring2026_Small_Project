@@ -49,7 +49,7 @@ function create_table(table_body) {
             ]) {
                 result += `<td>
                     <input
-                        id="${object[key]}_${object["contact_id"]}"
+                        id="${key}_${object["contact_id"]}"
                         class="bg-transparent text-center w-fit"
                         type="text"
                         value="${object[key]}"
@@ -60,8 +60,31 @@ function create_table(table_body) {
           contact_ids.push(object["contact_id"]);
         }
     }
-    result += `</tbody></table>`;
+    result += `</tbody></table>`; 
     $('#contact_table').append(result);
+  return contact_ids;
+    
+}
+
+function findEvents(element) {
+
+    var events = element.data('events');
+    if (events !== undefined) 
+        return events;
+
+    events = $.data(element, 'events');
+    if (events !== undefined) 
+        return events;
+
+    events = $._data(element, 'events');
+    if (events !== undefined)
+        return events;
+
+    events = $._data(element[0], 'events');
+    if (events !== undefined)
+        return events;
+
+    return undefined;
 }
 
 function bind_event_functions(contact_id) {
@@ -71,9 +94,12 @@ function bind_event_functions(contact_id) {
     "phone",
     "notes",
   ]){
-    $(`${contact_field}_${contact_id}`).on("keypress", async (event)=> {
-      if(event.key === "Enter") {
-        let field_value = $(`${contact_field}_${contact_id}`).val();
+    element = `#${contact_field}_${contact_id}`;
+    console.log(element)
+    $(element).on("keypress", async (event)=> {
+      console.log("Event Occured");
+      if(event.which === 13) {
+        let field_value = $(`#${contact_field}_${contact_id}`).val();
         result = await update_contact_attribute(contact_field, contact_id, field_value);
         //Result may be used to display to the users errors or something along those lines
         /*So basically what it would look like would be like this
@@ -157,14 +183,17 @@ async function update_contact_api() {
  */
 async function update_contact_attribute(contact_attribute, contact_id, new_value) {
   user_id = Number(localStorage.getItem("user_id"));
-  const request = await fetch(ENDPOINT + "${contact_id}", {
+  console.log(ENDPOINT + "/" +`${contact_id}`)
+  let body = {
+          [contact_attribute]: new_value, //Might need to be `${contact_attribute}`
+        };
+
+  const request = await fetch(ENDPOINT + "/" + `${contact_id}`, {
         method: "PATCH",
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          contact_attribute: new_value, //Might need to be `${contact_attribute}`
-        }),
+        body: JSON.stringify(body),
       });
   const response = await request.json();
 
@@ -225,7 +254,11 @@ async function init_table() {
     }
     console.log($('#contacts-box').val());
     const table_body = await get_contacts();
-    create_table(table_body);
+    const contact_ids = create_table(table_body);
+    console.log($("#full_name_2")[0]); 
+    contact_ids.forEach((element) => {
+      bind_event_functions(element);
+    });
 
 }
 
