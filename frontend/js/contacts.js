@@ -171,6 +171,10 @@ const CREATE_CONTACT_IDS = [
     "crc_notes"
 ];
 
+/**
+ * 
+ * @returns {boolean}
+ */
 async function create_contact_api() {
     if (REQUEST_CONTROL) return;
     REQUEST_CONTROL = true;
@@ -195,13 +199,17 @@ async function create_contact_api() {
     const response = await request.json();
     console.log(response);
 
+    let ok = false;
     if (!response.ok && response.error) {
         $("#crc_error").text(response.error);
         notify("error", response.error);
+    } else {
+        ok = true;
+        notify("success", response.message);
     }
 
     REQUEST_CONTROL = false;
-    return response;
+    return ok;
 }
 
 const UPDATE_CONTACT_IDS = [
@@ -289,23 +297,31 @@ async function delete_contact(contact_id) {
 }
 
 function create_contact() {
-    let form = document.getElementById("create_contact_form");
-    form.classList.add("flex");
-    form.classList.remove("hidden");
-    const cancel = () => CREATE_CONTACT_IDS.forEach(id => {
-        document.getElementById(id).value = "";
-    });
-    $("#crc_cancel").on("click", cancel);
-    $("#crc_submit").on("click", async () => {
-        console.log("Did some HTTP request")
-        const response = await create_contact_api();
-        notify("success", response.message);
-        form.classList.add("hidden");
-        form.classList.remove("flex");
-        cancel();
+    const form = $("#create_contact_form");
+    const overlay = $("#create_contact_overlay");
+
+    form.removeClass("hidden").addClass("flex");
+    overlay.removeClass("hidden");
+
+    const cancel = () => {
+        CREATE_CONTACT_IDS.forEach(id => $("#" + id).val(""));
+        form.addClass("hidden").removeClass("flex");
+        overlay.addClass("hidden");
+        overlay.off("click");
+        $("#crc_cancel").off("click");
+        $("#crc_submit").off("click");
+    };
+    overlay.off("click").on("click", cancel);
+    $("#crc_cancel").off("click").on("click", cancel);
+    $("#crc_submit").off("click").on("click", async () => {
+        const ok = await create_contact_api();
+        if (ok) {
+            cancel()
+        };
         await init_table();
-    })
+    });
 }
+
 
 /**
  * 
@@ -340,7 +356,6 @@ async function init_table() {
     if (!user_id) {
         window.location.href = "login.html";
     }
-    console.log($('#contacts-box').val());
     const table_body = await get_contacts();
     const contact_ids = create_table(table_body);
     contact_ids.forEach((element) => {
