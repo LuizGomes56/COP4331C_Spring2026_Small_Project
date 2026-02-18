@@ -29,6 +29,6 @@ jobs:
 
       - name: Run Tests and run backend
         run: |
-          php -S localhost:80 -t backend/public &
+          php -S localhost:8080 -t backend/public &
           sleep 2
           npm test
