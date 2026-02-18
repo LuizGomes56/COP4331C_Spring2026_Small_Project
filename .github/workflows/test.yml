@@ -18,7 +18,7 @@ jobs:
         with: 
           node-version: '20'
           cache: 'npm'
-        - name: dependency management
+      - name: dependency management
           run: npm ci
-        - name: run test
+      - name: run test
          run: npm test
