@@ -272,7 +272,12 @@ async function update_contact_attribute(contact_attribute, contact_id, new_value
         body: JSON.stringify(body),
     });
     const response = await request.json();
-
+    if (!response.ok && response.error) {
+        notify("error", response.error);
+    } else {
+        ok = true;
+        notify("success", response.message);
+    }
     REQUEST_CONTROL = false;
     return response.body;
 }
@@ -365,3 +370,8 @@ async function init_table() {
 }
 
 $(document).ready(init_table());
+
+function logout() {
+  localStorage.removeItem("user_id");
+  window.location.href = "/login.html";
+}
