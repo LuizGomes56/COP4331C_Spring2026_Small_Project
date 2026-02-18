@@ -9,12 +9,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Backend (PHP)
+      - name: Setup Backend 
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           extensions: sdo_mysql, mysqli
-
+      - name: Setup composer 
+        run: |
+          composer i --working-dir=./backend
+          composer dump-autoload --working-dir=./backend
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -24,5 +27,8 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Run Tests
-        run: npm test
+      - name: Run Tests and run backend
+        run: |
+          php -S localhost:80 -t backend/public &
+          sleep 2
+          npm test
