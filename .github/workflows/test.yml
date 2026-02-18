@@ -1,4 +1,4 @@
-name: Tests
+name: API test
 
 on: [push, pull_request]
 
@@ -6,10 +6,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-
     steps:
-      - uses: actions/checkout@v1
-      - name: Run Jest
-        uses: stefanoeb/jest-action@1.0.3
-        with:
-          jestArgs: apifunct.test.js
+      - uses: actions/checkout@v4
+      - name: Setup backend for test
+        uses: shivammathur/setup-php@v2
+        with: 
+          php-version: '8.5'
+          extensions: sdo_mysqli, mysqli
+      - name: Tests for API
+        uses: actions/setup-node@v4
+        with: 
+          node-version: '20'
+          cache: 'npm'
+        - name: dependency management
+          run: npm ci
+        - name: run test
+         run: npm test
