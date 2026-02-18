@@ -1,5 +1,4 @@
 *.lock
 vendor
-package-lock.json
 node_modules
 tailwind.config.js
