@@ -62,11 +62,15 @@ The project timeline was organized using a Gantt chart to visualize planning, da
 
 [Gantt Chart (PDF)](Gantt%20Chart.pdf)
 
+<img width="1144" height="709" alt="Screenshot 2026-02-19 at 2 55 36 PM" src="https://github.com/user-attachments/assets/3a59a8ed-2782-4623-88f3-7a6b592ecf17" />
+
 ### ERD
 
 The database schema was designed using an Entity Relationship Diagram (ERD) to define the Users and Contacts tables and their one-to-many relationship.
 
 ![ERD](ERD.png)
+
+<img width="405" height="381" alt="Screenshot 2026-02-19 at 2 55 51 PM" src="https://github.com/user-attachments/assets/7ea96c63-e6ea-4615-8a6c-d2a5f654714f" />
 
 ### Application Screenshots
 
