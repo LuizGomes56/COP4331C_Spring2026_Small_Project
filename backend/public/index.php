@@ -44,6 +44,9 @@ function db(): mysqli {
     $pass = env('DB_PASSWORD', 'root');
     $name = env('DB_DATABASE', 'contact_manager');
 
+    $dsn = "mysql://{$user}:{$pass}@{$host}:{$port}/{$name}";
+    echo $dsn . PHP_EOL;
+    
     $conn = new mysqli($host, $user, $pass, $name, $port);
 
     if ($conn->connect_error) {
