@@ -78,5 +78,9 @@ Below are screenshots from the running application showing user authentication a
 
 #### Login Page
 
+<img width="1073" height="797" alt="login" src="https://github.com/user-attachments/assets/125ecdfd-8753-41b9-b48f-5eea3fbaec84" />
 
 #### Contacts Page
+
+<img width="932" height="773" alt="contacts" src="https://github.com/user-attachments/assets/77202ac0-ffad-4466-a467-78bdd8a4ffc8" />
+
