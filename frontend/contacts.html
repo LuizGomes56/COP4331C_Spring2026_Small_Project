@@ -6,47 +6,88 @@
 <script defer src="js/utils.js"></script>
 <script defer src="js/contacts.js"></script>
 <script defer src="js/notification.js"></script>
-<link rel="stylesheet" href="cssstyles/contacts.css">
-<html lang="en">
 
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contacts</title>
+</head>
 
-<body>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white">
 
-    <button id="logout" class="px-4 py-2 w-fit bg-red-500 rounded-md font-medium " onClick="logout()">Logout</button>
+    <!-- Header -->
+    <header class="sticky top-0 z-30 backdrop-blur bg-slate-900/80 border-b border-slate-700">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <h1 class="text-xl font-bold tracking-wide">Small Project – Contacts</h1>
+            <button id="logout"
+                class="px-4 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 rounded-lg font-semibold transition shadow">
+                Logout
+            </button>
+        </div>
+    </header>
 
-    <div id="notification-root" class="fixed top-12 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-4"></div>
-    <h2 class="text-3xl font-bold text-center my-16">Registered contacts</h2>
-    <div id="create_contact_overlay" class="fixed inset-0 bg-black/50 hidden z-40"></div>
-    <div id="create_contact_form" class="hidden flex-col gap-4 max-w-xs
-     w-full bg-zinc-900 border border-zinc-700 p-4 rounded-md absolute left-1/2 z-50 -translate-x-1/2">
-        <h2 class="my-4 text-lg font-bold">Creating a new contact</h2>
-        <div class="flex flex-col gap-4">
-            <input type="text" id="crc_full_name" placeholder="Full Name" />
-            <input type="email" id="crc_email" placeholder="Email" />
-            <input type="text" id="crc_phone" placeholder="Phone" />
-            <input type="text" id="crc_notes" placeholder="Notes" />
+    <!-- Notifications -->
+    <div id="notification-root" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-3"></div>
+
+    <!-- Page Content -->
+    <main class="max-w-6xl mx-auto px-6 py-10 flex flex-col gap-8">
+
+        <h2 class="text-3xl font-bold text-center">Registered contacts</h2>
+
+        <!-- Overlay -->
+        <div id="create_contact_overlay" class="fixed inset-0 bg-black/60 hidden z-40"></div>
+
+        <!-- Create Contact Modal -->
+        <div id="create_contact_form"
+            class="hidden flex-col gap-4 max-w-sm w-full bg-slate-900/90 backdrop-blur border border-slate-700 p-6 rounded-2xl fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 shadow-2xl">
+
+            <h2 class="text-lg font-bold text-center">Creating a new contact</h2>
+
+            <div class="flex flex-col gap-3">
+                <input type="text" id="crc_full_name" placeholder="Full Name"
+                    class="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+                <input type="email" id="crc_email" placeholder="Email"
+                    class="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+                <input type="text" id="crc_phone" placeholder="Phone"
+                    class="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+                <input type="text" id="crc_notes" placeholder="Notes"
+                    class="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+            </div>
+
+            <div class="text-sm text-red-400" id="crc_error"></div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button id="crc_cancel" class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 transition">
+                    Cancel
+                </button>
+                <button id="crc_submit"
+                    class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 transition font-semibold shadow">
+                    Submit
+                </button>
+            </div>
         </div>
-        <div class="mt-4 text-red-500" id="crc_error"></div>
-        <div class="place-self-end flex gap-2 mt-4">
-            <button class="bg-red-500 py-2 px-4 rounded-md" id="crc_cancel" type="cancel">Cancel</button>
-            <button class="bg-emerald-500 py-2 px-4 rounded-md" id="crc_submit" type="submit">Submit</button>
+
+        <!-- Actions -->
+        <div id="contacts_box" class="flex flex-col gap-6">
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="create_contact"
+                    class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 rounded-lg font-semibold transition shadow">
+                    Create Contact
+                </button>
+
+                <input type="search" id="search_contacts" placeholder="Search contacts"
+                    class="flex-1 px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                    oninput="search_contacts(this.value)" />
+            </div>
+
+            <!-- Table -->
+            <div id="contact_table" class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/60"></div>
+
         </div>
-    </div>
-    <div id="contacts_box" class="max-w-5xl place-self-center flex flex-col gap-4">
-        <div class="flex gap-4">
-            <button id="create_contact" class="px-4 py-2 w-fit bg-emerald-800 rounded-md font-medium">Create
-                Contact</button>
-            <input type="search" id="search_contacts" placeholder="Search contacts"
-                class="flex-1 px-4 py-2 w-full bg-zinc-800 text-white rounded-md"
-                oninput="search_contacts(this.value)" />
-        </div>
-        <div id="contact_table" class=" overflow-x-auto"></div>
-    </div>
+    </main>
 
 </body>
 

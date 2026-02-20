@@ -5,34 +5,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COP4331C Small Project</title>
-    <link rel="stylesheet" type="text/css" href="cssstyles/register.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="js/utils.js"></script>
     <script src="js/register.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-    <h1 class="credentials-page-title">Small Project - Contacts</h1>
-    <div id="register-box" class="centering flex flex-col gap-4 p-4 w-64">
-        <h3 class="box-title">Create an Account</h3>
-        <div id="register-invalid-box" hidden>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center text-white">
+    <div id="register-box"
+        class="w-full max-w-sm bg-slate-900/80 backdrop-blur border border-slate-700 rounded-2xl shadow-2xl p-8 flex flex-col gap-6">
+        <h1 class="text-center text-2xl font-bold tracking-wide">
+            Small Project - Contacts
+        </h1>
+        <h3 class="text-center text-lg text-slate-300">
+            Create an Account
+        </h3>
+        <div id="register-invalid-box" hidden
+            class="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400 text-center space-y-1">
             <p id="invalid-input" hidden>Invalid email address</p>
             <p id="field-missing" hidden>One or more fields missing or too short</p>
         </div>
-        <div class="flex flex-col gap-2">
-            <input type="text" id="reg_full_name" placeholder="Full Name" />
-            <input type="email" id="reg_email" placeholder="Email" />
-            <input type="password" id="reg_password" placeholder="Password" />
+        <div class="flex flex-col gap-3">
+            <input type="text" id="reg_full_name" placeholder="Full Name"
+                class="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
+            <input type="email" id="reg_email" placeholder="Email"
+                class="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
+            <input type="password" id="reg_password" placeholder="Password"
+                class="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
         </div>
-        <div class="grid grid-cols-2 gap-2">
-            <button id="reg_reset" type="reset">Reset</button>
-            <button id="reg_submit" type="submit">Submit</button>
+        <div class="grid grid-cols-2 gap-3">
+            <button id="reg_reset" type="reset"
+                class="rounded-lg border border-slate-600 hover:border-slate-500 bg-slate-800 hover:bg-slate-700 py-2 font-medium transition">
+                Reset
+            </button>
+            <button id="reg_submit" type="submit"
+                class="rounded-lg bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 py-2 font-semibold transition shadow-md hover:shadow-lg">
+                Submit
+            </button>
         </div>
-        <a href="login.html">
-            <p id="already-registered" class="reg-text">Already registered?</p>
+        <a href="login.html" class="text-center">
+            <p id="already-registered" class="text-indigo-400 hover:text-indigo-300 hover:underline transition">
+                Already registered?
+            </p>
         </a>
     </div>
-
 </body>
 
 </html>
