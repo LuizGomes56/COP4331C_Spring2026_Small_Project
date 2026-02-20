@@ -1,82 +1,118 @@
-openapi: 3.0.0
-info:
-  version: 1.0.0
-  title: Contacts API
-  description: Returns a user's contacts
-paths:
-  /contacts:
-    get:
-      summary: Get all contacts for a user
-      description: Returns all of a user's contacts.
-      parameters:
-        - name: user_id
-          in: query
-          required: true
-          description: The ID of the user
-          schema:
-            type: integer
-            example: 1
-      responses:
-        '200':
-          description: Contacts retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetContactsResponse'
-        '400':
-          description: Invalid user ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-servers:
-  # Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/ucf-08f/ContactsAPI/1.0.0
-
-components:
-  schemas:
-
-    Contact:
-      type: object
-      properties:
-        contact_id:
-          type: integer
-          example: 1
-        full_name:
-          type: string
-          example: Test User
-        email:
-          type: string
-          example: email@mail.com
-        phone:
-          type: string
-          example: 123-456-7891
-        notes:
-          type: string
-          example: Example
-        created_at:
-          type: string
-          format: date-time
-          example: 2026-02-15T10:30:00Z
-
-    GetContactsResponse:
-      type: object
-      properties:
-        ok:
-          type: boolean
-          example: true
-        contacts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Contact'
-
-    ErrorResponse:
-      type: object
-      properties:
-        ok:
-          type: boolean
-          example: false
-        error:
-          type: string
-          example: The User ID is invalid
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Contacts API",
+    "description": "Returns a user's contacts",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://virtserver.swaggerhub.com/ucf-08f/ContactsAPI/1.0.0",
+      "description": "SwaggerHub API Auto Mocking"
+    }
+  ],
+  "paths": {
+    "/contacts": {
+      "get": {
+        "summary": "Get all contacts for a user",
+        "description": "Returns all of a user's contacts.",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "description": "The ID of the user",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contacts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetContactsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Contact": {
+        "type": "object",
+        "properties": {
+          "contact_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "full_name": {
+            "type": "string",
+            "example": "Test User"
+          },
+          "email": {
+            "type": "string",
+            "example": "email@mail.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "123-456-7891"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Example"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-02-15T10:30:00Z"
+          }
+        }
+      },
+      "GetContactsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contact"
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "example": "The User ID is invalid"
+          }
+        }
+      }
+    }
+  }
+}
