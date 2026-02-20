@@ -59,12 +59,19 @@ const ENDPOINT = `${BASE_ENDPOINT}/contacts`;
 const SEARCH_SUFFIX = "/search/";
 
 function update_button(contact_id) {
-    return `<button 
-        class="bg-rose-800 text-center text-white px-4 py-1.5 rounded-md" 
-        onClick="delete_contact(${contact_id})"
-    >
-        Delete
-    </button>`;
+    return `
+        <button
+            class="bg-rose-600 hover:bg-rose-500 active:bg-rose-700
+                   text-white px-4 py-1.5 rounded-lg font-medium
+                   transition shadow hover:shadow-md
+                   focus:outline-none focus:ring-2 focus:ring-rose-400
+                   cursor-pointer"
+            title="Delete this contact"
+            onClick="delete_contact(${contact_id})"
+        >
+            Delete
+        </button>
+    `;
 }
 
 /** 
@@ -83,9 +90,12 @@ function create_table(table_body, message = "You have no registered contacts!") 
         <h2 class="text-3xl font-bold text-center my-16">${message}</h2>`
         return;
     }
-    let result = `<table><thead><tr>`;
+    let result = `
+        <table class="min-w-full text-sm text-left text-slate-300">
+        <thead class="bg-slate-800 text-slate-200">
+        <tr>`;
     for (header of ["Name", "Email", "Phone", "Notes", "Actions"]) {
-        result += `<th class="first:rounded-tl-xl last:rounded-tr-xl">${header}</th>`;
+        result += `<th class="px-3 py-2 font-semibold text-center">${header}</th>`;
     }
     let contact_ids = [];
     if (Array.isArray(table_body)) {
@@ -99,7 +109,7 @@ function create_table(table_body, message = "You have no registered contacts!") 
                 "notes",
                 //"created_at"
             ]) {
-                result += `<td>
+                result += `<td class="px-3 py-2 border-t border-slate-700 text-center">
                     <input
                         id="${key}_${object["contact_id"]}"
                         class="bg-transparent text-center w-fit"
@@ -108,7 +118,11 @@ function create_table(table_body, message = "You have no registered contacts!") 
                     ></input>
                 </td>`;
             }
-            result += `<td>${update_button(object["contact_id"])}</td></tr>`;
+            result += `
+                <td class="px-3 py-2 border-t border-slate-700 text-center align-middle">
+                    ${update_button(object["contact_id"])}
+                </td>
+                </tr>`;
             contact_ids.push(object["contact_id"]);
         }
     }
@@ -372,6 +386,6 @@ async function init_table() {
 $(document).ready(init_table());
 
 function logout() {
-  localStorage.removeItem("user_id");
-  window.location.href = "/login.html";
+    localStorage.removeItem("user_id");
+    window.location.href = "/login.html";
 }
