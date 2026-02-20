@@ -6,13 +6,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
-    env:
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_PORT: ${{ secrets.DB_PORT }}
-      DB_USERNAME: ${{ secrets.DB_USERNAME }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_DATABASE: ${{ secrets.DB_DATABASE }}
-    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -34,7 +27,16 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
-
+      - name: Create .env file for tests
+        run: |
+          cat > backend/.env << EOF
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_DATABASE=${{ secrets.DB_DATABASE }}
+          EOF
+        
       - name: Run Tests and run backend
         run: |
           php -S localhost:8080 -t backend/public &
