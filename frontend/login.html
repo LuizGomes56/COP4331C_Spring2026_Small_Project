@@ -5,22 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COP4331C Small Project</title>
-    <link rel="stylesheet" type="text/css" href="cssstyles/login.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <script src="js/utils.js"></script>
     <script src="js/login.js"></script>
 </head>
 
-<body>
-    <h1 class="text-center">Small Project - Contacts</h1>
-    <div class="justify-self-center flex flex-col gap-4 p-4 w-64">
-        <h3 class="text-center">Login</h3>
-        <div class="flex flex-col gap-2">
-            <input type="text" id="login_email" placeholder="Email" />
-            <input type="password" id="login_password" placeholder="Password" />
+<body class="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center text-white">
+    <div
+        class="w-full max-w-sm bg-slate-900/80 backdrop-blur border border-slate-700 rounded-2xl shadow-2xl p-8 flex flex-col gap-6">
+        <h1 class="text-center text-2xl font-bold tracking-wide">
+            Small Project - Contacts
+        </h1>
+        <h3 class="text-center text-lg text-slate-300">
+            Login
+        </h3>
+        <div class="flex flex-col gap-3">
+            <input type="text" id="login_email" placeholder="Email"
+                class="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
+            <input type="password" id="login_password" placeholder="Password"
+                class="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
         </div>
-        <button id="login_submit" type="submit">Submit</button>
-        <div id="login_message"></div>
+        <button id="login_submit" type="submit"
+            class="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 py-2 font-semibold transition shadow-md hover:shadow-lg">
+            Submit
+        </button>
+        <div id="login_message" class="min-h-[1.25rem] text-center text-sm text-red-400"></div>
     </div>
+
 </body>
 
 </html>

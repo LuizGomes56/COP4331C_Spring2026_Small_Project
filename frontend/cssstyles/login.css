@@ -2,62 +2,37 @@
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-h3 {
-    margin: 0;
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-.w-64 {
-    width: 16rem;
+::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-.flex {
-    display: flex;
+::-webkit-scrollbar-thumb {
+    background-color: rgba(153, 153, 153, 0.4);
+    border-radius: 4px;
+    border: 1px solid transparent;
+    background-clip: content-box;
 }
 
-.text-center {
-    text-align: center;
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(153, 153, 153, 0.7);
 }
 
-.flex-col {
-    flex-direction: column;
+#create_contact_form input,
+#update_dialog input {
+    background-color: #18181b;
+    border: 1px solid #525252;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
 }
 
-.items-center {
-    align-items: center;
-}
-
-.justify-center {
-    justify-content: center;
-}
-
-.justify-self-center {
-    justify-self: center;
-}
-
-.gap-2 {
-    gap: 0.5rem;
-}
-
-.gap-4 {
-    gap: 1rem;
-}
-
-.p-4 {
-    padding: 1rem;
-}
-
-.p-2 {
-    padding: 0.5rem;
-}
-
-.px-2 {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-}
-
-.px-4 {
-    padding-left: 1rem;
-    padding-right: 1rem;
+body {
+    color: #ffffff;
+    background-color: #121212;
 }
 
 input {
