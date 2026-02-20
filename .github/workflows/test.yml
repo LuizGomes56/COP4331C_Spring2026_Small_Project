@@ -1,0 +1,34 @@
+name: API test
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Backend 
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sdo_mysql, mysqli
+      - name: Setup composer 
+        run: |
+          composer i --working-dir=./backend
+          composer dump-autoload --working-dir=./backend
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests and run backend
+        run: |
+          php -S localhost:8080 -t backend/public &
+          sleep 2
+          npm test

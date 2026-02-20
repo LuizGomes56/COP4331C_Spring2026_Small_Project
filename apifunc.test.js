@@ -19,7 +19,7 @@ $app->get("/contacts/search/{query}", [ContactsController::class, "searchContact
 */
 
 
-const ENDPOINT = "http://project.cop4331.cc/api";
+const ENDPOINT = "http://localhost:8080/api";
 
 // import const describe = jest.describe;
 // console.log(jest);
@@ -75,7 +75,7 @@ describe('Exisitng User API Endpoint testing', () => {
     test('Registering as existing User', async () => {
         const data = await register_test();
         // expect(data.status).toBe(200);
-        expect(data.status).toBe(409);
+      expect(data.status, `Register status ${data.body}`).toBe(409);
         expect(typeof data.body.error).toBe(typeof "");
         // expect(data.body).toEqual({ ok: true, out: "Registration successful" })
     });
