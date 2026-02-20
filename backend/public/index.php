@@ -38,9 +38,9 @@ function env(string $key, ?string $default = null): ?string {
 }
 
 function db(): mysqli {
-    $host = env('DB_HOST', '127.0.0.1');
+    $host = env('DB_HOST', '52.205.195.135');
     $port = (int) env('DB_PORT', '3306');
-    $user = env('DB_USERNAME', 'root');
+    $user = env('DB_USERNAME', 'contact_user');
     $pass = env('DB_PASSWORD', '');
     $name = env('DB_DATABASE', 'contact_manager');
 
