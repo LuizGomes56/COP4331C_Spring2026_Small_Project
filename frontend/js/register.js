@@ -21,7 +21,6 @@ let register_api_point = `${BASE_ENDPOINT}/users/register`;
 // let register_api_point = "http://project.cop4331.cc/api/users/register";
 //TODO: Unimplemented webpage
 //Will discuss further about customer dashboard
-let customer_dashboard_url = "";
 
 document.addEventListener("DOMContentLoaded", () => {
     [
@@ -105,13 +104,10 @@ const register = async () => {
             if (json.error) {
                 throw new Error(json.error);
             }
-            window.location.replace(customer_dashboard_url);
             console.log(`ID: ${json.id}`);
             localStorage.setItem("user_id", json.user_id);
-            localStorage.setItem("full_name", json.full_name); 
-            window.location.href = "/contacts.html";
-
-
+            localStorage.setItem("full_name", json.full_name);
+            window.location.href = "/login.html";
         } catch (e) {
             if (e instanceof Error) {
                 console.error(`Request error: ${e.message}`);

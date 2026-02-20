@@ -88,7 +88,7 @@ function create_table(table_body, message = "You have no registered contacts!") 
     if (table_body.length == 0) {
         document.getElementById("contact_table").innerHTML = `
         <h2 class="text-3xl font-bold text-center my-16">${message}</h2>`
-        return;
+        return [];
     }
     let result = `
         <table class="min-w-full text-sm text-left text-slate-300">
@@ -100,7 +100,7 @@ function create_table(table_body, message = "You have no registered contacts!") 
     let contact_ids = [];
     if (Array.isArray(table_body)) {
         result += `</tr></thead><tbody>`;
-        for (object of table_body) {
+        for (const object of table_body) {
             result += `<tr>`;
             for (const key of [
                 "full_name",
@@ -111,7 +111,7 @@ function create_table(table_body, message = "You have no registered contacts!") 
             ]) {
                 result += `<td class="px-3 py-2 border-t border-slate-700 text-center">
                     <input
-                        id="${key}_${object["contact_id"]}"
+                        id="${key}_${object.contact_id}"
                         class="bg-transparent text-center w-fit"
                         type="text"
                         value="${object[key]}"
@@ -120,10 +120,10 @@ function create_table(table_body, message = "You have no registered contacts!") 
             }
             result += `
                 <td class="px-3 py-2 border-t border-slate-700 text-center align-middle">
-                    ${update_button(object["contact_id"])}
+                    ${update_button(object.contact_id)}
                 </td>
                 </tr>`;
-            contact_ids.push(object["contact_id"]);
+            contact_ids.push(object.contact_id);
         }
     }
     result += `</tbody></table>`;
@@ -370,11 +370,11 @@ async function get_contacts() {
 }
 
 async function init_table() {
-    $("#create_contact").on("click", create_contact);
     let user_id = localStorage.getItem("user_id");
     if (!user_id) {
         window.location.href = "login.html";
     }
+    $("#create_contact").on("click", create_contact);
     const table_body = await get_contacts();
     const contact_ids = create_table(table_body);
     contact_ids.forEach((element) => {
