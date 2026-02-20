@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const reset_register = () => {
-    ["reg_first_name", "reg_last_name", "reg_email", "reg_password"]
+    ["reg_full_name", "reg_email", "reg_password"]
         .forEach(x => document.getElementById(x).value = "");
 
 
@@ -58,17 +58,15 @@ function get_value(
 
 
 const register = async () => {
-    const [first_name, last_name, email, password] = get_value([
-        "reg_first_name",
-        "reg_last_name",
+    const [full_name, email, password] = get_value([
+        "reg_full_name",
         "reg_email",
         "reg_password"
     ]);
 
     const body = {
         email,
-        first_name,
-        last_name,
+        full_name,
         password
     };
 
@@ -78,9 +76,10 @@ const register = async () => {
     const passwd_regex = ""; //Might implement this for pwd val although unsure if this is already overkill
     let pattern_result = regex.exec(email);
     console.log(pattern_result);
-
+    console.log(full_name.length);
+    console.log(password.length);
     //Generally for giving the user feedback if the inputed info is invalid
-    if (pattern_result != null && first_name.length > 4 && last_name.length > 4 && password.length > 4) {
+    if (pattern_result != null && full_name.length > 4 && password.length > 4) {
         invalid_div.hidden = true;
         invalid_input_text.hidden = true;
         field_missing_text.hidden = true;
@@ -107,7 +106,10 @@ const register = async () => {
                 throw new Error(json.error);
             }
             window.location.replace(customer_dashboard_url);
-            console.log("ID: ${json.id}");
+            console.log(`ID: ${json.id}`);
+            localStorage.setItem("user_id", json.user_id);
+            localStorage.setItem("full_name", json.full_name); 
+            window.location.href = "/contacts.html";
 
 
         } catch (e) {
