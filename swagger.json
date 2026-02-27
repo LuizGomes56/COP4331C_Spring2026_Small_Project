@@ -1,26 +1,190 @@
 {
-  "openapi": "3.0.0",
+  "openapi": "3.0.3",
   "info": {
-    "title": "Contacts API",
-    "description": "Returns a user's contacts",
+    "title": "Contact Manager API",
+    "description": "REST API for managing users and contacts, built with Slim Framework 4.",
+    "contact": {
+      "name": "Luiz Gomes",
+      "email": "luizgustavodgomes@gmail.com"
+    },
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "https://virtserver.swaggerhub.com/ucf-08f/ContactsAPI/1.0.0",
-      "description": "SwaggerHub API Auto Mocking"
+      "url": "/api",
+      "description": "Default server (base path)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Health check and utility endpoints"
+    },
+    {
+      "name": "Users",
+      "description": "User registration and authentication"
+    },
+    {
+      "name": "Contacts",
+      "description": "CRUD operations for contacts"
     }
   ],
   "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check",
+        "description": "Returns the current server time to confirm the API is running.",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/echo": {
+      "post": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Echo request body",
+        "description": "Returns the parsed request body back to the caller. Useful for debugging.",
+        "operationId": "postEcho",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Echoed body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200_1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/register": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Register a new user",
+        "operationId": "registerUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Registration successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200_2"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "409": {
+            "description": "User already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "User Already Exists"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Log in an existing user",
+        "operationId": "loginUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200_3"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
     "/contacts": {
       "get": {
-        "summary": "Get all contacts for a user",
-        "description": "Returns all of a user's contacts.",
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "List all contacts for a user",
+        "operationId": "getContacts",
         "parameters": [
           {
             "name": "user_id",
             "in": "query",
-            "description": "The ID of the user",
+            "description": "The ID of the authenticated user",
             "required": true,
             "schema": {
               "type": "integer",
@@ -30,17 +194,200 @@
         ],
         "responses": {
           "200": {
-            "description": "Contacts retrieved successfully",
+            "description": "List of contacts",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetContactsResponse"
+                  "$ref": "#/components/schemas/inline_response_200_4"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid user ID",
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Create a new contact",
+        "operationId": "createContact",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContactRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Contact created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/contacts/search/{query}": {
+      "get": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Search contacts by keyword",
+        "description": "Performs a partial match (LIKE) search across full_name, email, phone, and notes fields.",
+        "operationId": "searchContacts",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "path",
+            "description": "Search keyword",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "john"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "description": "The ID of the authenticated user",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching contacts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200_5"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/contacts/{contact_id}": {
+      "get": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Get a contact by ID",
+        "operationId": "getContactById",
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "description": "The numeric ID of the contact",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 7
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200_6"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Contact not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Contact not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Replace a contact entirely",
+        "description": "Replaces all fields of an existing contact. All fields are required.",
+        "operationId": "replaceContact",
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "description": "The numeric ID of the contact",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 7
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceContactRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Contact replaced",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Contact not found or nothing to replace",
             "content": {
               "application/json": {
                 "schema": {
@@ -50,53 +397,275 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Delete a contact",
+        "operationId": "deleteContact",
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "description": "The numeric ID of the contact",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 7
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Partially update a contact",
+        "description": "Updates only the fields provided in the request body.",
+        "operationId": "updateContact",
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "description": "The numeric ID of the contact",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 7
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContactRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Contact updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
       }
     }
   },
   "components": {
     "schemas": {
-      "Contact": {
+      "RegisterRequest": {
+        "required": [
+          "email",
+          "full_name",
+          "password"
+        ],
         "type": "object",
         "properties": {
-          "contact_id": {
+          "full_name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "jane@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "s3cr3tP@ss"
+          }
+        }
+      },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "jane@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "s3cr3tP@ss"
+          }
+        }
+      },
+      "CreateContactRequest": {
+        "required": [
+          "full_name",
+          "user_id"
+        ],
+        "type": "object",
+        "properties": {
+          "user_id": {
             "type": "integer",
             "example": 1
           },
           "full_name": {
             "type": "string",
-            "example": "Test User"
-          },
-          "email": {
-            "type": "string",
-            "example": "email@mail.com"
+            "example": "John Smith"
           },
           "phone": {
             "type": "string",
-            "example": "123-456-7891"
+            "example": "+1-555-0100"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
           },
           "notes": {
             "type": "string",
-            "example": "Example"
+            "example": "Met at conference"
+          }
+        }
+      },
+      "UpdateContactRequest": {
+        "type": "object",
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "example": "John Smith"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1-555-0101"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.new@example.com"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Updated note"
+          }
+        },
+        "description": "At least one field must be provided."
+      },
+      "ReplaceContactRequest": {
+        "required": [
+          "email",
+          "full_name",
+          "notes",
+          "phone",
+          "user_id"
+        ],
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "full_name": {
+            "type": "string",
+            "example": "John Smith"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1-555-0100"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Some note"
+          }
+        }
+      },
+      "ContactSummary": {
+        "type": "object",
+        "properties": {
+          "contact_id": {
+            "type": "integer",
+            "example": 7
+          },
+          "full_name": {
+            "type": "string",
+            "example": "John Smith"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1-555-0100"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Met at conference"
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "example": "2026-02-15T10:30:00Z"
+            "example": "2024-06-01T10:30:00Z"
           }
         }
       },
-      "GetContactsResponse": {
+      "ContactFull": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ContactSummary"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user_id": {
+                "type": "integer",
+                "example": 1
+              }
+            }
+          }
+        ]
+      },
+      "SuccessMessage": {
         "type": "object",
         "properties": {
           "ok": {
             "type": "boolean",
             "example": true
           },
-          "contacts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Contact"
-            }
+          "message": {
+            "type": "string",
+            "example": "Operation completed successfully"
           }
         }
       },
@@ -109,8 +678,151 @@
           },
           "error": {
             "type": "string",
-            "example": "The User ID is invalid"
+            "example": "An error occurred"
           }
+        }
+      },
+      "inline_response_200": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-01-01T12:00:00Z"
+          }
+        }
+      },
+      "inline_response_200_1": {
+        "type": "object",
+        "properties": {
+          "you_sent": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "inline_response_200_2": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "out": {
+            "type": "string",
+            "example": "Registration successful"
+          }
+        }
+      },
+      "inline_response_200_3": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "user_id": {
+            "type": "integer",
+            "example": 42
+          }
+        }
+      },
+      "inline_response_200_4": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactSummary"
+            }
+          }
+        }
+      },
+      "inline_response_200_5": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactFull"
+            }
+          }
+        }
+      },
+      "inline_response_200_6": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contact": {
+            "$ref": "#/components/schemas/ContactFull"
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request – invalid or missing input",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "ok": false,
+              "error": "Invalid input"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "ok": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "UserIdQuery": {
+        "name": "user_id",
+        "in": "query",
+        "description": "The ID of the authenticated user",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "example": 1
+        }
+      },
+      "ContactIdPath": {
+        "name": "contact_id",
+        "in": "path",
+        "description": "The numeric ID of the contact",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "example": 7
         }
       }
     }
