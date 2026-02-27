@@ -1,0 +1,505 @@
+openapi: 3.0.3
+info:
+  title: Contact Manager API
+  description: REST API for managing users and contacts, built with Slim Framework 4.
+  version: 1.0.0
+  contact:
+    name: Luiz Gomes
+    email: luizgustavodgomes@gmail.com
+
+servers:
+  - url: /api
+    description: Default server (base path)
+
+tags:
+  - name: Health
+    description: Health check and utility endpoints
+  - name: Users
+    description: User registration and authentication
+  - name: Contacts
+    description: CRUD operations for contacts
+
+paths:
+
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns the current server time to confirm the API is running.
+      operationId: getHealth
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  time:
+                    type: string
+                    format: date-time
+                    example: "2025-01-01T12:00:00+00:00"
+
+  /echo:
+    post:
+      tags: [Health]
+      summary: Echo request body
+      description: Returns the parsed request body back to the caller. Useful for debugging.
+      operationId: postEcho
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Echoed body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  you_sent:
+                    type: object
+                    additionalProperties: true
+
+  /users/register:
+    post:
+      tags: [Users]
+      summary: Register a new user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  out:
+                    type: string
+                    example: Registration successful
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                ok: false
+                error: User Already Exists
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/login:
+    post:
+      tags: [Users]
+      summary: Log in an existing user
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  user_id:
+                    type: integer
+                    example: 42
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /contacts:
+    get:
+      tags: [Contacts]
+      summary: List all contacts for a user
+      operationId: getContacts
+      parameters:
+        - $ref: '#/components/parameters/UserIdQuery'
+      responses:
+        '200':
+          description: List of contacts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  contacts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContactSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    post:
+      tags: [Contacts]
+      summary: Create a new contact
+      operationId: createContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactRequest'
+      responses:
+        '200':
+          description: Contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /contacts/search/{query}:
+    get:
+      tags: [Contacts]
+      summary: Search contacts by keyword
+      description: Performs a partial match (LIKE) search across full_name, email, phone, and notes fields.
+      operationId: searchContacts
+      parameters:
+        - name: query
+          in: path
+          required: true
+          description: Search keyword
+          schema:
+            type: string
+            example: john
+        - $ref: '#/components/parameters/UserIdQuery'
+      responses:
+        '200':
+          description: Matching contacts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  contacts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContactFull'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /contacts/{contact_id}:
+    get:
+      tags: [Contacts]
+      summary: Get a contact by ID
+      operationId: getContactById
+      parameters:
+        - $ref: '#/components/parameters/ContactIdPath'
+      responses:
+        '200':
+          description: Contact found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  contact:
+                    $ref: '#/components/schemas/ContactFull'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Contact not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                ok: false
+                error: Contact not found
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      tags: [Contacts]
+      summary: Partially update a contact
+      description: Updates only the fields provided in the request body.
+      operationId: updateContact
+      parameters:
+        - $ref: '#/components/parameters/ContactIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContactRequest'
+      responses:
+        '200':
+          description: Contact updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    put:
+      tags: [Contacts]
+      summary: Replace a contact entirely
+      description: Replaces all fields of an existing contact. All fields are required.
+      operationId: replaceContact
+      parameters:
+        - $ref: '#/components/parameters/ContactIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplaceContactRequest'
+      responses:
+        '200':
+          description: Contact replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Contact not found or nothing to replace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Contacts]
+      summary: Delete a contact
+      operationId: deleteContact
+      parameters:
+        - $ref: '#/components/parameters/ContactIdPath'
+      responses:
+        '200':
+          description: Contact deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+components:
+
+  parameters:
+    UserIdQuery:
+      name: user_id
+      in: query
+      required: true
+      description: The ID of the authenticated user
+      schema:
+        type: integer
+        example: 1
+
+    ContactIdPath:
+      name: contact_id
+      in: path
+      required: true
+      description: The numeric ID of the contact
+      schema:
+        type: integer
+        example: 7
+
+  schemas:
+
+    RegisterRequest:
+      type: object
+      required: [full_name, email, password]
+      properties:
+        full_name:
+          type: string
+          example: Jane Doe
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        password:
+          type: string
+          format: password
+          example: s3cr3tP@ss
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        password:
+          type: string
+          format: password
+          example: s3cr3tP@ss
+
+    CreateContactRequest:
+      type: object
+      required: [full_name, user_id]
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        full_name:
+          type: string
+          example: John Smith
+        phone:
+          type: string
+          example: "+1-555-0100"
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        notes:
+          type: string
+          example: Met at conference
+
+    UpdateContactRequest:
+      type: object
+      description: At least one field must be provided.
+      properties:
+        full_name:
+          type: string
+          example: John Smith
+        phone:
+          type: string
+          example: "+1-555-0101"
+        email:
+          type: string
+          format: email
+          example: john.new@example.com
+        notes:
+          type: string
+          example: Updated note
+
+    ReplaceContactRequest:
+      type: object
+      required: [user_id, full_name, email, phone, notes]
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        full_name:
+          type: string
+          example: John Smith
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        phone:
+          type: string
+          example: "+1-555-0100"
+        notes:
+          type: string
+          example: Some note
+
+    ContactSummary:
+      type: object
+      properties:
+        contact_id:
+          type: integer
+          example: 7
+        full_name:
+          type: string
+          example: John Smith
+        email:
+          type: string
+          example: john@example.com
+        phone:
+          type: string
+          example: "+1-555-0100"
+        notes:
+          type: string
+          example: Met at conference
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-06-01T10:30:00Z"
+
+    ContactFull:
+      allOf:
+        - $ref: '#/components/schemas/ContactSummary'
+        - type: object
+          properties:
+            user_id:
+              type: integer
+              example: 1
+
+    SuccessMessage:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully
+
+    ErrorResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: An error occurred
+
+  responses:
+    BadRequest:
+      description: Bad request – invalid or missing input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            error: Invalid input
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            error: Internal server error
