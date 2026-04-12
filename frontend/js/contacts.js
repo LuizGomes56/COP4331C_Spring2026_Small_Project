@@ -9,54 +9,146 @@
 // ]
 
 let REQUEST_CONTROL = false;
-
-async function search_contacts(query) {
-    console.log("Search function was called with query: " + query);
-
-    if (!query || !query.trim()) {
-        await init_table();
-        return;
-    }
-
-    let user_id = localStorage.getItem("user_id");
-
-    if (!user_id) {
-        notify("error", "Can't search contacts without user_id being defined");
-    }
-
-    try {
-        const url =
-            `${BASE_ENDPOINT}/contacts/search/${encodeURIComponent(query)}` +
-            `?user_id=${user_id}`;
-
-        const response = await fetch(url, {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        });
-
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.error || "Failed to search for new contacts");
-        }
-
-        const data = await response.json();
-
-        if (!data.ok) {
-            throw new Error(data.error || "Search query returned an error");
-        }
-
-        create_table(data.contacts, "No contacts match your search query");
-    } catch (err) {
-        console.error(err);
-        notify("error", err.message);
-    }
-}
+let ALL_CONTACTS = [];
+let CURRENT_QUERY = "";
+let SHOW_FAVORITES_ONLY = false;
 
 // 
 const ENDPOINT = `${BASE_ENDPOINT}/contacts`;
-const SEARCH_SUFFIX = "/search/";
+
+function get_user_id() {
+    return localStorage.getItem("user_id");
+}
+
+function is_favorite_contact(contact_id) {
+    const contact = ALL_CONTACTS.find((entry) => Number(entry.contact_id) === Number(contact_id));
+    return contact ? contact_has_favorite_flag(contact) : false;
+}
+
+function contact_has_favorite_flag(contact) {
+    return contact.is_favorite === true || Number(contact.is_favorite) === 1;
+}
+
+function escape_html(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function get_visible_contacts() {
+    const contacts = SHOW_FAVORITES_ONLY
+        ? ALL_CONTACTS.filter(contact => contact_has_favorite_flag(contact))
+        : [...ALL_CONTACTS];
+
+    contacts.sort((left, right) => {
+        const left_is_favorite = contact_has_favorite_flag(left);
+        const right_is_favorite = contact_has_favorite_flag(right);
+
+        if (left_is_favorite !== right_is_favorite) {
+            return left_is_favorite ? -1 : 1;
+        }
+
+        return left.full_name.localeCompare(right.full_name);
+    });
+
+    return contacts;
+}
+
+function get_empty_message() {
+    const has_query = Boolean(CURRENT_QUERY.trim());
+
+    if (SHOW_FAVORITES_ONLY && has_query) {
+        return "No favorite contacts match your search query";
+    }
+
+    if (SHOW_FAVORITES_ONLY) {
+        return "You have no favorite contacts yet";
+    }
+
+    if (has_query) {
+        return "No contacts match your search query";
+    }
+
+    return "You have no registered contacts!";
+}
+
+function update_favorite_controls() {
+    const filter_all = document.getElementById("filter_all");
+    const filter_favorites = document.getElementById("filter_favorites");
+    const favorite_count_text = document.getElementById("favorite_count_text");
+    const favorite_total = ALL_CONTACTS.filter(contact => contact_has_favorite_flag(contact)).length;
+
+    const active_classes = "bg-indigo-600 text-white shadow-sm";
+    const inactive_classes = "text-slate-400 hover:text-white";
+
+    if (SHOW_FAVORITES_ONLY) {
+        filter_all.className = `px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${inactive_classes}`;
+        filter_favorites.className = `px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${active_classes}`;
+    } else {
+        filter_all.className = `px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${active_classes}`;
+        filter_favorites.className = `px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${inactive_classes}`;
+    }
+
+    filter_all.setAttribute("aria-pressed", String(!SHOW_FAVORITES_ONLY));
+    filter_favorites.setAttribute("aria-pressed", String(SHOW_FAVORITES_ONLY));
+    favorite_count_text.textContent = `${favorite_total} favorite${favorite_total === 1 ? "" : "s"}`;
+}
+
+function render_contacts_table() {
+    const contact_ids = create_table(get_visible_contacts(), get_empty_message());
+    contact_ids.forEach((contact_id) => {
+        bind_event_functions(contact_id);
+    });
+    update_favorite_controls();
+}
+
+async function fetch_contacts(query = "") {
+    const trimmed_query = query.trim();
+    const user_id = get_user_id();
+
+    if (!user_id) {
+        window.location.href = "login.html";
+        return [];
+    }
+
+    const url = trimmed_query
+        ? `${BASE_ENDPOINT}/contacts/search/${encodeURIComponent(trimmed_query)}?user_id=${user_id}`
+        : `${ENDPOINT}?user_id=${user_id}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Accept": "application/json"
+        }
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || data.ok === false) {
+        throw new Error(data.error || "Unable to load contacts");
+    }
+
+    return Array.isArray(data.contacts) ? data.contacts : [];
+}
+
+async function refresh_contacts(query = CURRENT_QUERY) {
+    CURRENT_QUERY = query;
+
+    try {
+        ALL_CONTACTS = await fetch_contacts(query);
+        render_contacts_table();
+    } catch (error) {
+        console.error(error);
+        notify("error", error.message);
+    }
+}
+
+async function search_contacts(query) {
+    await refresh_contacts(query);
+}
 
 function update_button(contact_id) {
     return `
@@ -70,6 +162,35 @@ function update_button(contact_id) {
             onClick="delete_contact(${contact_id})"
         >
             Delete
+        </button>
+    `;
+}
+
+function favorite_button(contact_id) {
+    const is_favorite = is_favorite_contact(contact_id);
+    const star_icon = is_favorite
+        ? `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+           </svg>`
+        : `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
+           </svg>`;
+
+    const button_classes = is_favorite
+        ? "text-amber-400 hover:text-amber-300"
+        : "text-slate-500 hover:text-amber-400";
+
+    return `
+        <button
+            class="${button_classes} p-1.5 rounded-lg transition-colors duration-200
+                   focus:outline-none focus:ring-2 focus:ring-amber-400/50
+                   cursor-pointer hover:bg-slate-700/50"
+            type="button"
+            aria-pressed="${is_favorite}"
+            aria-label="${is_favorite ? "Remove from favorites" : "Add to favorites"}"
+            onClick="toggle_favorite(${contact_id})"
+        >
+            ${star_icon}
         </button>
     `;
 }
@@ -94,14 +215,27 @@ function create_table(table_body, message = "You have no registered contacts!") 
         <table class="min-w-full text-sm text-left text-slate-300">
         <thead class="bg-slate-800 text-slate-200">
         <tr>`;
-    for (header of ["Name", "Email", "Phone", "Notes", "Actions"]) {
-        result += `<th class="px-3 py-2 font-semibold text-center">${header}</th>`;
+    const headers = [
+        { label: '<svg class="w-4 h-4 mx-auto text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>', width: 'w-12' },
+        { label: 'Name', width: '' },
+        { label: 'Email', width: '' },
+        { label: 'Phone', width: '' },
+        { label: 'Notes', width: '' },
+        { label: 'Actions', width: '' }
+    ];
+    for (const header of headers) {
+        result += `<th class="px-3 py-2 font-semibold text-center ${header.width}">${header.label}</th>`;
     }
     let contact_ids = [];
     if (Array.isArray(table_body)) {
         result += `</tr></thead><tbody>`;
         for (const object of table_body) {
             result += `<tr>`;
+            result += `
+                <td class="px-3 py-2 border-t border-slate-700 text-center align-middle">
+                    ${favorite_button(object.contact_id)}
+                </td>
+            `;
             for (const key of [
                 "full_name",
                 "email",
@@ -114,7 +248,7 @@ function create_table(table_body, message = "You have no registered contacts!") 
                         id="${key}_${object.contact_id}"
                         class="bg-transparent text-center w-fit"
                         type="text"
-                        value="${object[key]}"
+                        value="${escape_html(object[key])}"
                     ></input>
                 </td>`;
             }
@@ -160,13 +294,13 @@ function bind_event_functions(contact_id) {
         "phone",
         "notes",
     ]) {
-        element = `#${contact_field}_${contact_id}`;
+        const element = `#${contact_field}_${contact_id}`;
         console.log(element)
         $(element).on("keypress", async (event) => {
             console.log("Event Occured");
             if (event.which === 13) {
-                let field_value = $(`#${contact_field}_${contact_id}`).val();
-                result = await update_contact_attribute(contact_field, contact_id, field_value);
+                const field_value = $(`#${contact_field}_${contact_id}`).val();
+                await update_contact_attribute(contact_field, contact_id, field_value);
                 //Result may be used to display to the users errors or something along those lines
                 /*So basically what it would look like would be like this
                  * if(result.error === true) {
@@ -268,11 +402,10 @@ async function update_contact_api() {
  * @param {number} contact_id
  * @returns {Object} result
  */
-async function update_contact_attribute(contact_attribute, contact_id, new_value) {
+async function update_contact_attribute(contact_attribute, contact_id, new_value, shouldNotify = true) {
     if (REQUEST_CONTROL) return;
     REQUEST_CONTROL = true;
 
-    user_id = Number(localStorage.getItem("user_id"));
     console.log(ENDPOINT + "/" + `${contact_id}`)
     let body = {
         [contact_attribute]: new_value, //Might need to be `${contact_attribute}`
@@ -287,13 +420,34 @@ async function update_contact_attribute(contact_attribute, contact_id, new_value
     });
     const response = await request.json();
     if (!response.ok && response.error) {
-        notify("error", response.error);
-    } else {
-        ok = true;
+        if (shouldNotify) {
+            notify("error", response.error);
+        }
+    } else if (shouldNotify) {
         notify("success", response.message);
     }
     REQUEST_CONTROL = false;
-    return response.body;
+    return response;
+}
+
+async function toggle_favorite(contact_id) {
+    if (REQUEST_CONTROL) return;
+
+    const should_be_favorite = !is_favorite_contact(contact_id);
+    const response = await update_contact_attribute("is_favorite", contact_id, should_be_favorite ? 1 : 0, false);
+
+    if (!response || response.ok === false) {
+        if (response && response.error) {
+            notify("error", response.error);
+        }
+        return;
+    }
+
+    await refresh_contacts();
+    notify(
+        should_be_favorite ? "success" : "info",
+        should_be_favorite ? "Contact added to favorites" : "Contact removed from favorites"
+    );
 }
 
 async function delete_contact(contact_id) {
@@ -312,7 +466,7 @@ async function delete_contact(contact_id) {
     }
 
     REQUEST_CONTROL = false;
-    await init_table();
+    await refresh_contacts();
 }
 
 function create_contact() {
@@ -337,53 +491,32 @@ function create_contact() {
         if (ok) {
             cancel()
         };
-        await init_table();
+        await refresh_contacts();
     });
-}
-
-
-/**
- * 
- * @returns {{
- *  contact_id: number,
- *  created_at: string,
- *  email: string,
- *  full_name: string,
- *  notes: string,
- *  phone: string
- * }[]}
- */
-async function get_contacts() {
-    if (REQUEST_CONTROL) return;
-    REQUEST_CONTROL = true;
-
-    const user_id = localStorage.getItem("user_id");
-    const request = await fetch(ENDPOINT + `?user_id=${user_id}`, {
-        method: 'GET',
-    });
-
-    const response = await request.json();
-
-    console.log(response);
-    REQUEST_CONTROL = false;
-    return response.contacts
 }
 
 async function init_table() {
-    let user_id = localStorage.getItem("user_id");
+    const user_id = get_user_id();
     if (!user_id) {
         window.location.href = "login.html";
     }
-    $("#create_contact").on("click", create_contact);
-    const table_body = await get_contacts();
-    const contact_ids = create_table(table_body);
-    contact_ids.forEach((element) => {
-        bind_event_functions(element);
+    $("#create_contact").off("click").on("click", create_contact);
+    $("#filter_all").off("click").on("click", () => {
+        if (SHOW_FAVORITES_ONLY) {
+            SHOW_FAVORITES_ONLY = false;
+            render_contacts_table();
+        }
     });
-
+    $("#filter_favorites").off("click").on("click", () => {
+        if (!SHOW_FAVORITES_ONLY) {
+            SHOW_FAVORITES_ONLY = true;
+            render_contacts_table();
+        }
+    });
+    await refresh_contacts();
 }
 
-$(document).ready(init_table());
+$(document).ready(init_table);
 
 function logout() {
     localStorage.removeItem("user_id");
