@@ -391,6 +391,9 @@ components:
         notes:
           type: string
           example: Met at conference
+        is_favorite:
+          type: boolean
+          example: false
 
     UpdateContactRequest:
       type: object
@@ -409,6 +412,9 @@ components:
         notes:
           type: string
           example: Updated note
+        is_favorite:
+          type: boolean
+          example: true
 
     ReplaceContactRequest:
       type: object
@@ -430,6 +436,9 @@ components:
         notes:
           type: string
           example: Some note
+        is_favorite:
+          type: boolean
+          example: false
 
     ContactSummary:
       type: object
@@ -449,6 +458,9 @@ components:
         notes:
           type: string
           example: Met at conference
+        is_favorite:
+          type: boolean
+          example: true
         created_at:
           type: string
           format: date-time

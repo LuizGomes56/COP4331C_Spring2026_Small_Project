@@ -10,6 +10,29 @@ use App\Utils\Responder;
 use mysqli;
 
 final class ContactsController {
+    private function parseFavoriteValue($value): ?int {
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        if (is_int($value)) {
+            return ($value === 0 || $value === 1) ? $value : null;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+
+            if (in_array($normalized, ['1', 'true'], true)) {
+                return 1;
+            }
+
+            if (in_array($normalized, ['0', 'false'], true)) {
+                return 0;
+            }
+        }
+
+        return null;
+    }
 
     public function getContacts(Request $req, Response $res): Response {
         $queryParams = $req->getQueryParams();
@@ -24,7 +47,7 @@ final class ContactsController {
         $userId = (int)$queryParams['user_id'];
 
         //Search for all contacts relating to the user
-        $stmt = $conn->prepare("SELECT contact_id, full_name, email, phone, notes, created_at FROM contacts WHERE user_id = ?");
+        $stmt = $conn->prepare("SELECT contact_id, full_name, email, phone, notes, is_favorite, created_at FROM contacts WHERE user_id = ?");
 
         $stmt->bind_param("i", $userId);
 
@@ -55,7 +78,7 @@ final class ContactsController {
 
         $conn = db();
 
-        $stmt = $conn->prepare("SELECT contact_id, user_id, full_name, email, phone, notes, created_at FROM contacts WHERE contact_id = ?");
+        $stmt = $conn->prepare("SELECT contact_id, user_id, full_name, email, phone, notes, is_favorite, created_at FROM contacts WHERE contact_id = ?");
         $stmt->bind_param("i", $contactId);
 
         if ($stmt->execute()) {
@@ -86,13 +109,22 @@ final class ContactsController {
 
         $conn = db();
 
-        $stmt = $conn->prepare("INSERT INTO contacts (full_name, phone, email, notes, user_id) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO contacts (full_name, phone, email, notes, user_id, is_favorite) VALUES (?, ?, ?, ?, ?, ?)");
 
         $fullName = $inData["full_name"];
         $userId = (int) $inData["user_id"];
         $phone = $inData["phone"] ?? "";
         $email = $inData["email"] ?? "";
         $notes = $inData["notes"] ?? "";
+        $isFavorite = 0;
+
+        if (array_key_exists("is_favorite", $inData)) {
+            $isFavorite = $this->parseFavoriteValue($inData["is_favorite"]);
+
+            if ($isFavorite === null) {
+                return Responder::json($res, ["ok" => false, "error" => "The is_favorite field must be true, false, 1, or 0"], 400);
+            }
+        }
 
         if (!is_string($phone) || !is_string($email)) {
             return Responder::json($res, ["ok" => false, "error" => "The phone and email must be strings"], 400);
@@ -102,7 +134,7 @@ final class ContactsController {
             return Responder::json($res, ["ok" => false, "error" => "The email must be a valid email"], 400);
         }
 
-        $stmt->bind_param("ssssi", $fullName, $phone, $email, $notes, $userId);
+        $stmt->bind_param("ssssii", $fullName, $phone, $email, $notes, $userId, $isFavorite);
 
         if ($stmt->execute()) {
             $conn->close();
@@ -141,6 +173,17 @@ final class ContactsController {
             $types .= "s";
             $values[] = $inData['notes'];
         }
+        if (array_key_exists('is_favorite', $inData)) {
+            $favoriteValue = $this->parseFavoriteValue($inData['is_favorite']);
+
+            if ($favoriteValue === null) {
+                return Responder::json($res, ["ok" => false, "error" => "The is_favorite field must be true, false, 1, or 0"], 400);
+            }
+
+            $fields[] = "is_favorite=?";
+            $types .= "i";
+            $values[] = $favoriteValue;
+        }
 
         if (empty($fields)) {
             return Responder::json($res, ["ok" => false, "error" => "No fields provided to update"]);
@@ -178,11 +221,19 @@ final class ContactsController {
             return Responder::json($res, ["ok" => false, "error" => "Missing required fields"]);
         }
 
+        $favoriteValue = array_key_exists('is_favorite', $inData)
+            ? $this->parseFavoriteValue($inData['is_favorite'])
+            : 0;
+
+        if ($favoriteValue === null) {
+            return Responder::json($res, ["ok" => false, "error" => "The is_favorite field must be true, false, 1, or 0"], 400);
+        }
+
         $conn = db();
 
-        $stmt = $conn->prepare("UPDATE contacts SET user_id = ?, full_name = ?, email = ?, phone = ?, notes = ? WHERE contact_id = ?");
+        $stmt = $conn->prepare("UPDATE contacts SET user_id = ?, full_name = ?, email = ?, phone = ?, notes = ?, is_favorite = ? WHERE contact_id = ?");
 
-        $stmt->bind_param("issssi", $inData['user_id'], $inData['full_name'], $inData['email'], $inData['phone'], $inData['notes'], $contactID);
+        $stmt->bind_param("issssii", $inData['user_id'], $inData['full_name'], $inData['email'], $inData['phone'], $inData['notes'], $favoriteValue, $contactID);
 
         //Replace contact if found
         if ($stmt->execute()) {

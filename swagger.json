@@ -551,6 +551,10 @@
           "notes": {
             "type": "string",
             "example": "Met at conference"
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "example": false
           }
         }
       },
@@ -573,6 +577,10 @@
           "notes": {
             "type": "string",
             "example": "Updated note"
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "example": true
           }
         },
         "description": "At least one field must be provided."
@@ -607,6 +615,10 @@
           "notes": {
             "type": "string",
             "example": "Some note"
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "example": false
           }
         }
       },
@@ -632,6 +644,10 @@
           "notes": {
             "type": "string",
             "example": "Met at conference"
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "example": true
           },
           "created_at": {
             "type": "string",
