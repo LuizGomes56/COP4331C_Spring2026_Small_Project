@@ -9,54 +9,193 @@
 // ]
 
 let REQUEST_CONTROL = false;
-
-async function search_contacts(query) {
-    console.log("Search function was called with query: " + query);
-
-    if (!query || !query.trim()) {
-        await init_table();
-        return;
-    }
-
-    let user_id = localStorage.getItem("user_id");
-
-    if (!user_id) {
-        notify("error", "Can't search contacts without user_id being defined");
-    }
-
-    try {
-        const url =
-            `${BASE_ENDPOINT}/contacts/search/${encodeURIComponent(query)}` +
-            `?user_id=${user_id}`;
-
-        const response = await fetch(url, {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        });
-
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.error || "Failed to search for new contacts");
-        }
-
-        const data = await response.json();
-
-        if (!data.ok) {
-            throw new Error(data.error || "Search query returned an error");
-        }
-
-        create_table(data.contacts, "No contacts match your search query");
-    } catch (err) {
-        console.error(err);
-        notify("error", err.message);
-    }
-}
+let ALL_CONTACTS = [];
+let CURRENT_QUERY = "";
+let SHOW_FAVORITES_ONLY = false;
 
 // 
 const ENDPOINT = `${BASE_ENDPOINT}/contacts`;
-const SEARCH_SUFFIX = "/search/";
+
+function get_user_id() {
+    return localStorage.getItem("user_id");
+}
+
+function get_favorites_storage_key() {
+    const user_id = get_user_id();
+    return user_id ? `favorite_contacts_${user_id}` : null;
+}
+
+function get_favorite_contact_ids() {
+    const key = get_favorites_storage_key();
+    if (!key) {
+        return new Set();
+    }
+
+    try {
+        const stored = JSON.parse(localStorage.getItem(key) || "[]");
+        if (!Array.isArray(stored)) {
+            return new Set();
+        }
+
+        return new Set(stored.map(Number));
+    } catch (error) {
+        console.error(error);
+        return new Set();
+    }
+}
+
+function save_favorite_contact_ids(favorite_ids) {
+    const key = get_favorites_storage_key();
+    if (!key) {
+        return;
+    }
+
+    localStorage.setItem(key, JSON.stringify([...favorite_ids]));
+}
+
+function is_favorite_contact(contact_id) {
+    return get_favorite_contact_ids().has(Number(contact_id));
+}
+
+function set_contact_favorite(contact_id, should_be_favorite) {
+    const favorite_ids = get_favorite_contact_ids();
+
+    if (should_be_favorite) {
+        favorite_ids.add(Number(contact_id));
+    } else {
+        favorite_ids.delete(Number(contact_id));
+    }
+
+    save_favorite_contact_ids(favorite_ids);
+}
+
+function prune_favorite_contact_ids() {
+    const favorite_ids = get_favorite_contact_ids();
+    const valid_contact_ids = new Set(ALL_CONTACTS.map(contact => Number(contact.contact_id)));
+    const next_favorite_ids = new Set(
+        [...favorite_ids].filter(contact_id => valid_contact_ids.has(Number(contact_id)))
+    );
+
+    if (next_favorite_ids.size !== favorite_ids.size) {
+        save_favorite_contact_ids(next_favorite_ids);
+    }
+}
+
+function escape_html(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function get_visible_contacts() {
+    const favorite_ids = get_favorite_contact_ids();
+    const contacts = SHOW_FAVORITES_ONLY
+        ? ALL_CONTACTS.filter(contact => favorite_ids.has(Number(contact.contact_id)))
+        : [...ALL_CONTACTS];
+
+    contacts.sort((left, right) => {
+        const left_is_favorite = favorite_ids.has(Number(left.contact_id));
+        const right_is_favorite = favorite_ids.has(Number(right.contact_id));
+
+        if (left_is_favorite !== right_is_favorite) {
+            return left_is_favorite ? -1 : 1;
+        }
+
+        return left.full_name.localeCompare(right.full_name);
+    });
+
+    return contacts;
+}
+
+function get_empty_message() {
+    const has_query = Boolean(CURRENT_QUERY.trim());
+
+    if (SHOW_FAVORITES_ONLY && has_query) {
+        return "No favorite contacts match your search query";
+    }
+
+    if (SHOW_FAVORITES_ONLY) {
+        return "You have no favorite contacts yet";
+    }
+
+    if (has_query) {
+        return "No contacts match your search query";
+    }
+
+    return "You have no registered contacts!";
+}
+
+function update_favorite_controls() {
+    const favorite_button = document.getElementById("toggle_favorites");
+    const favorite_count = document.getElementById("favorite_count");
+    const favorite_total = get_favorite_contact_ids().size;
+
+    favorite_button.setAttribute("aria-pressed", String(SHOW_FAVORITES_ONLY));
+    favorite_button.textContent = SHOW_FAVORITES_ONLY
+        ? "Show All Contacts"
+        : "Show Favorites Only";
+    favorite_button.className = SHOW_FAVORITES_ONLY
+        ? "px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition shadow"
+        : "px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg font-semibold transition shadow";
+    favorite_count.textContent = `${favorite_total} favorite${favorite_total === 1 ? "" : "s"}`;
+}
+
+function render_contacts_table() {
+    const contact_ids = create_table(get_visible_contacts(), get_empty_message());
+    contact_ids.forEach((contact_id) => {
+        bind_event_functions(contact_id);
+    });
+    update_favorite_controls();
+}
+
+async function fetch_contacts(query = "") {
+    const trimmed_query = query.trim();
+    const user_id = get_user_id();
+
+    if (!user_id) {
+        window.location.href = "login.html";
+        return [];
+    }
+
+    const url = trimmed_query
+        ? `${BASE_ENDPOINT}/contacts/search/${encodeURIComponent(trimmed_query)}?user_id=${user_id}`
+        : `${ENDPOINT}?user_id=${user_id}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Accept": "application/json"
+        }
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || data.ok === false) {
+        throw new Error(data.error || "Unable to load contacts");
+    }
+
+    return Array.isArray(data.contacts) ? data.contacts : [];
+}
+
+async function refresh_contacts(query = CURRENT_QUERY) {
+    CURRENT_QUERY = query;
+
+    try {
+        ALL_CONTACTS = await fetch_contacts(query);
+        prune_favorite_contact_ids();
+        render_contacts_table();
+    } catch (error) {
+        console.error(error);
+        notify("error", error.message);
+    }
+}
+
+async function search_contacts(query) {
+    await refresh_contacts(query);
+}
 
 function update_button(contact_id) {
     return `
@@ -70,6 +209,30 @@ function update_button(contact_id) {
             onClick="delete_contact(${contact_id})"
         >
             Delete
+        </button>
+    `;
+}
+
+function favorite_button(contact_id) {
+    const is_favorite = is_favorite_contact(contact_id);
+    const button_label = is_favorite ? "Favorited" : "Favorite";
+    const button_classes = is_favorite
+        ? "bg-amber-500 text-slate-950 hover:bg-amber-400 focus:ring-amber-300"
+        : "bg-slate-700 text-white hover:bg-slate-600 focus:ring-slate-400";
+
+    return `
+        <button
+            class="${button_classes}
+                   px-4 py-1.5 rounded-lg font-medium
+                   transition shadow hover:shadow-md
+                   focus:outline-none focus:ring-2
+                   cursor-pointer"
+            type="button"
+            aria-pressed="${is_favorite}"
+            aria-label="${is_favorite ? "Remove from favorites" : "Mark as favorite"}"
+            onClick="toggle_favorite(${contact_id})"
+        >
+            ${button_label}
         </button>
     `;
 }
@@ -94,7 +257,7 @@ function create_table(table_body, message = "You have no registered contacts!") 
         <table class="min-w-full text-sm text-left text-slate-300">
         <thead class="bg-slate-800 text-slate-200">
         <tr>`;
-    for (header of ["Name", "Email", "Phone", "Notes", "Actions"]) {
+    for (const header of ["Favorite", "Name", "Email", "Phone", "Notes", "Actions"]) {
         result += `<th class="px-3 py-2 font-semibold text-center">${header}</th>`;
     }
     let contact_ids = [];
@@ -102,6 +265,11 @@ function create_table(table_body, message = "You have no registered contacts!") 
         result += `</tr></thead><tbody>`;
         for (const object of table_body) {
             result += `<tr>`;
+            result += `
+                <td class="px-3 py-2 border-t border-slate-700 text-center align-middle">
+                    ${favorite_button(object.contact_id)}
+                </td>
+            `;
             for (const key of [
                 "full_name",
                 "email",
@@ -114,7 +282,7 @@ function create_table(table_body, message = "You have no registered contacts!") 
                         id="${key}_${object.contact_id}"
                         class="bg-transparent text-center w-fit"
                         type="text"
-                        value="${object[key]}"
+                        value="${escape_html(object[key])}"
                     ></input>
                 </td>`;
             }
@@ -160,13 +328,13 @@ function bind_event_functions(contact_id) {
         "phone",
         "notes",
     ]) {
-        element = `#${contact_field}_${contact_id}`;
+        const element = `#${contact_field}_${contact_id}`;
         console.log(element)
         $(element).on("keypress", async (event) => {
             console.log("Event Occured");
             if (event.which === 13) {
-                let field_value = $(`#${contact_field}_${contact_id}`).val();
-                result = await update_contact_attribute(contact_field, contact_id, field_value);
+                const field_value = $(`#${contact_field}_${contact_id}`).val();
+                await update_contact_attribute(contact_field, contact_id, field_value);
                 //Result may be used to display to the users errors or something along those lines
                 /*So basically what it would look like would be like this
                  * if(result.error === true) {
@@ -272,7 +440,6 @@ async function update_contact_attribute(contact_attribute, contact_id, new_value
     if (REQUEST_CONTROL) return;
     REQUEST_CONTROL = true;
 
-    user_id = Number(localStorage.getItem("user_id"));
     console.log(ENDPOINT + "/" + `${contact_id}`)
     let body = {
         [contact_attribute]: new_value, //Might need to be `${contact_attribute}`
@@ -289,11 +456,26 @@ async function update_contact_attribute(contact_attribute, contact_id, new_value
     if (!response.ok && response.error) {
         notify("error", response.error);
     } else {
-        ok = true;
         notify("success", response.message);
     }
     REQUEST_CONTROL = false;
     return response.body;
+}
+
+function toggle_favorite(contact_id) {
+    const should_be_favorite = !is_favorite_contact(contact_id);
+
+    set_contact_favorite(contact_id, should_be_favorite);
+    render_contacts_table();
+    notify(
+        should_be_favorite ? "success" : "info",
+        should_be_favorite ? "Contact added to favorites" : "Contact removed from favorites"
+    );
+}
+
+function toggle_favorites_filter() {
+    SHOW_FAVORITES_ONLY = !SHOW_FAVORITES_ONLY;
+    render_contacts_table();
 }
 
 async function delete_contact(contact_id) {
@@ -306,13 +488,14 @@ async function delete_contact(contact_id) {
     const response = await request.json();
     console.log(response);
     if (response.ok) {
+        set_contact_favorite(contact_id, false);
         notify("success", response.message);
     } else {
         notify("error", response.error);
     }
 
     REQUEST_CONTROL = false;
-    await init_table();
+    await refresh_contacts();
 }
 
 function create_contact() {
@@ -337,53 +520,21 @@ function create_contact() {
         if (ok) {
             cancel()
         };
-        await init_table();
+        await refresh_contacts();
     });
-}
-
-
-/**
- * 
- * @returns {{
- *  contact_id: number,
- *  created_at: string,
- *  email: string,
- *  full_name: string,
- *  notes: string,
- *  phone: string
- * }[]}
- */
-async function get_contacts() {
-    if (REQUEST_CONTROL) return;
-    REQUEST_CONTROL = true;
-
-    const user_id = localStorage.getItem("user_id");
-    const request = await fetch(ENDPOINT + `?user_id=${user_id}`, {
-        method: 'GET',
-    });
-
-    const response = await request.json();
-
-    console.log(response);
-    REQUEST_CONTROL = false;
-    return response.contacts
 }
 
 async function init_table() {
-    let user_id = localStorage.getItem("user_id");
+    const user_id = get_user_id();
     if (!user_id) {
         window.location.href = "login.html";
     }
-    $("#create_contact").on("click", create_contact);
-    const table_body = await get_contacts();
-    const contact_ids = create_table(table_body);
-    contact_ids.forEach((element) => {
-        bind_event_functions(element);
-    });
-
+    $("#create_contact").off("click").on("click", create_contact);
+    $("#toggle_favorites").off("click").on("click", toggle_favorites_filter);
+    await refresh_contacts();
 }
 
-$(document).ready(init_table());
+$(document).ready(init_table);
 
 function logout() {
     localStorage.removeItem("user_id");
