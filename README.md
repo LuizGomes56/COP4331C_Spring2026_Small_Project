@@ -8,7 +8,7 @@ The backend is implemented in PHP using Slim Framework and exposes REST API endp
 
 Swagger (OpenAPI) is used to document the API. An ERD was created to design the database schema, and a Gantt chart was used to track project progress.
 
-So far, we have completed the database design using an ERD, implemented the backend REST API with Slim Framework, added user authentication and contact CRUD functionality, integrated the frontend with the backend using Fetch API, and documented the API using Swagger. We also created a Gantt chart to organize development phases and added basic API testing to validate endpoints. The application currently supports user registration, login, contact creation, retrieval, updates, deletion, and search.
+So far, we have completed the database design using an ERD, implemented the backend REST API with Slim Framework, added user authentication and contact CRUD functionality, integrated the frontend with the backend using Fetch API, and documented the API using Swagger. We also created a Gantt chart to organize development phases and added basic API testing to validate endpoints. The application currently supports user registration, login, contact creation, retrieval, updates, deletion, search, and database-backed favorite contacts.
 
 The goal of this project is to build a simple full-stack contact management system while practicing REST API development, frontend–backend integration, database design, and team collaboration. The backend was built using PHP, the frontend using HTML, CSS, and JavaScript, and the database was designed with an ERD and accessed through the API. Swagger (OpenAPI) was used for API documentation, GitHub for version control, and Google Sheets for project timeline management.
 
@@ -24,6 +24,12 @@ The goal of this project is to build a simple full-stack contact management syst
 > composer dump-autoload
 
 > php -S 127.0.0.1:8000 router.php
+
+### Database update for favorites
+
+Run the SQL in [backend/database/add_is_favorite_to_contacts.sql](backend/database/add_is_favorite_to_contacts.sql) before using the favorites feature.
+
+This migration adds an `is_favorite` column to the `contacts` table with a default value of `0`.
 
 ### API Routes
 
@@ -45,7 +51,7 @@ POST /api/contacts
 Creates a new contact.
 
 PATCH /api/contacts/{contact_id}  
-Updates one or more fields of a contact.
+Updates one or more fields of a contact, including `is_favorite`.
 
 PUT /api/contacts/{contact_id}  
 Replaces the entire contact record.
@@ -83,4 +89,3 @@ Below are screenshots from the running application showing user authentication a
 #### Contacts Page
 
 <img width="932" height="773" alt="contacts" src="https://github.com/user-attachments/assets/77202ac0-ffad-4466-a467-78bdd8a4ffc8" />
-
