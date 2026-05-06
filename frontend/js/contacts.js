@@ -10,6 +10,34 @@
 
 let REQUEST_CONTROL = false;
 
+// Favorite Contacts functions
+function getFavorites() {
+    const favorites = localStorage.getItem("favorites");
+
+    if (!favorites) {
+        return [];
+    }
+
+    return JSON.parse(favorites);
+}
+
+function isFavorite(contact_id) {
+    return getFavorites().includes(contact_id);
+}
+
+function favoriteContacts(contact_id) {
+    let favorites = getFavorites();
+
+    if (favorites.includes(contact_id)) {
+        const index = favorites.indexOf(contact_id);
+        favorites.splice(index, 1);
+    } else {
+        favorites.push(contact_id);
+    }
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+    init_table();
+}
+
 async function search_contacts(query) {
     console.log("Search function was called with query: " + query);
 
@@ -59,18 +87,35 @@ const ENDPOINT = `${BASE_ENDPOINT}/contacts`;
 const SEARCH_SUFFIX = "/search/";
 
 function update_button(contact_id) {
+
+    const favorite_icon = isFavorite(contact_id)
+        ? "Unfavorite"
+        : "Favorite";
+
     return `
-        <button
-            class="bg-rose-600 hover:bg-rose-500 active:bg-rose-700
-                   text-white px-4 py-1.5 rounded-lg font-medium
-                   transition shadow hover:shadow-md
-                   focus:outline-none focus:ring-2 focus:ring-rose-400
-                   cursor-pointer"
-            title="Delete this contact"
-            onClick="delete_contact(${contact_id})"
-        >
-            Delete
-        </button>
+        <div class="flex justify-center items-center gap-2">
+
+            <button
+                class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1 rounded"
+                title="Favorite contact"
+                onClick="favoriteContacts(${contact_id})"
+            >
+                ${favorite_icon}
+            </button>
+
+            <button
+                class="bg-rose-600 hover:bg-rose-500 active:bg-rose-700
+                       text-white px-4 py-1.5 rounded-lg font-medium
+                       transition shadow hover:shadow-md
+                       focus:outline-none focus:ring-2 focus:ring-rose-400
+                       cursor-pointer"
+                title="Delete this contact"
+                onClick="delete_contact(${contact_id})"
+            >
+                Delete
+            </button>
+
+        </div>
     `;
 }
 
@@ -90,6 +135,11 @@ function create_table(table_body, message = "You have no registered contacts!") 
         <h2 class="text-3xl font-bold text-center my-16">${message}</h2>`
         return [];
     }
+    // Sorting with favorites displayed first
+    table_body.sort(function(a, b) {
+        return isFavorite(b.contact_id) - isFavorite(a.contact_id);
+    });
+    
     let result = `
         <table class="min-w-full text-sm text-left text-slate-300">
         <thead class="bg-slate-800 text-slate-200">
